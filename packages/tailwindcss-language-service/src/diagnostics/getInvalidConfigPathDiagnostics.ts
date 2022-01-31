@@ -1,15 +1,20 @@
-import { State, Settings } from '../util/state'
-import type { TextDocument, Range, DiagnosticSeverity } from 'vscode-languageserver'
+import { TextDocument, Range } from 'vscode-languageserver-textdocument'
+import dlv from 'dlv'
+
 import { InvalidConfigPathDiagnostic, DiagnosticKind } from './types'
-import { isCssDoc } from '../util/css'
-import { getLanguageBoundaries } from '../util/getLanguageBoundaries'
-import { findAll, indexToPosition } from '../util/find'
-import { stringToPath } from '../util/stringToPath'
-import isObject from '../util/isObject'
-import { closest } from '../util/closest'
-import { absoluteRange } from '../util/absoluteRange'
-import { combinations } from '../util/combinations'
-const dlv = require('dlv')
+import {
+  isCssDoc,
+  getLanguageBoundaries,
+  findAll,
+  indexToPosition,
+  stringToPath,
+  isObject,
+  closest,
+  absoluteRange,
+  combinations,
+  State,
+  Settings
+} from '../util'
 
 function pathToString(path: string | string[]): string {
   if (typeof path === 'string') return path
@@ -30,15 +35,15 @@ export function validateConfigPath(
   let suggestions: string[] = []
 
   function findAlternativePath(): string[] {
-    let points = combinations('123456789'.substr(0, keys.length - 1)).map((x) =>
-      x.split('').map((x) => parseInt(x, 10))
+    let points = combinations('123456789'.substr(0, keys.length - 1)).map(x =>
+      x.split('').map(x => parseInt(x, 10))
     )
 
     let possibilities: string[][] = points
-      .map((p) => {
+      .map(p => {
         let result = []
         let i = 0
-        p.forEach((x) => {
+        p.forEach(x => {
           result.push(keys.slice(i, x).join('.'))
           i = x
         })
@@ -47,7 +52,7 @@ export function validateConfigPath(
       })
       .slice(1) // skip original path
 
-    return possibilities.find((possibility) => validateConfigPath(state, possibility, base).isValid)
+    return possibilities.find(possibility => validateConfigPath(state, possibility, base).isValid)
   }
 
   if (typeof value === 'undefined') {
@@ -59,7 +64,7 @@ export function validateConfigPath(
       let closestValidKey = closest(
         keys[keys.length - 1],
         Object.keys(parentValue).filter(
-          (key) => validateConfigPath(state, [...parentPath, key]).isValid
+          key => validateConfigPath(state, [...parentPath, key]).isValid
         )
       )
       if (closestValidKey) {
@@ -72,7 +77,7 @@ export function validateConfigPath(
         return {
           isValid: false,
           reason: `${reason} Did you mean '${pathToString(altPath)}'?`,
-          suggestions: [pathToString(altPath)],
+          suggestions: [pathToString(altPath)]
         }
       }
     }
@@ -80,7 +85,7 @@ export function validateConfigPath(
     return {
       isValid: false,
       reason,
-      suggestions,
+      suggestions
     }
   }
 
@@ -98,17 +103,17 @@ export function validateConfigPath(
 
     if (isObject(value)) {
       let validKeys = Object.keys(value).filter(
-        (key) => validateConfigPath(state, [...keys, key], base).isValid
+        key => validateConfigPath(state, [...keys, key], base).isValid
       )
       if (validKeys.length) {
-        suggestions.push(...validKeys.map((validKey) => pathToString([...keys, validKey])))
+        suggestions.push(...validKeys.map(validKey => pathToString([...keys, validKey])))
         reason += ` Did you mean something like '${suggestions[0]}'?`
       }
     }
     return {
       isValid: false,
       reason,
-      suggestions,
+      suggestions
     }
   }
 
@@ -140,20 +145,20 @@ export function validateConfigPath(
       return {
         isValid: false,
         reason: `${reason} Did you mean '${pathToString(altPath)}'?`,
-        suggestions: [pathToString(altPath)],
+        suggestions: [pathToString(altPath)]
       }
     }
 
     return {
       isValid: false,
       reason,
-      suggestions: [],
+      suggestions: []
     }
   }
 
   return {
     isValid: true,
-    value,
+    value
   }
 }
 
@@ -176,14 +181,14 @@ export function getInvalidConfigPathDiagnostics(
     ranges.push(...boundaries.css)
   }
 
-  ranges.forEach((range) => {
+  ranges.forEach(range => {
     let text = document.getText(range)
     let matches = findAll(
       /(?<prefix>\s|^)(?<helper>config|theme)\((?<quote>['"])(?<key>[^)]+)\k<quote>\)/g,
       text
     )
 
-    matches.forEach((match) => {
+    matches.forEach(match => {
       let base = match.groups.helper === 'theme' ? ['theme'] : []
       let result = validateConfigPath(state, match.groups.key, base)
 
@@ -203,7 +208,7 @@ export function getInvalidConfigPathDiagnostics(
         range: absoluteRange(
           {
             start: indexToPosition(text, startIndex),
-            end: indexToPosition(text, startIndex + match.groups.key.length),
+            end: indexToPosition(text, startIndex + match.groups.key.length)
           },
           range
         ),
@@ -212,7 +217,7 @@ export function getInvalidConfigPathDiagnostics(
             ? 1 /* DiagnosticSeverity.Error */
             : 2 /* DiagnosticSeverity.Warning */,
         message: result.reason,
-        suggestions: result.suggestions,
+        suggestions: result.suggestions
       })
     })
   })

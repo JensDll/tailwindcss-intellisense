@@ -1,12 +1,17 @@
-import { joinWithAnd } from '../util/joinWithAnd'
-import { State, Settings } from '../util/state'
-import type { TextDocument, DiagnosticSeverity } from 'vscode-languageserver'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+
 import { CssConflictDiagnostic, DiagnosticKind } from './types'
-import { findClassListsInDocument, getClassNamesInClassList } from '../util/find'
-import { getClassNameDecls } from '../util/getClassNameDecls'
-import { getClassNameMeta } from '../util/getClassNameMeta'
-import { equal } from '../util/array'
-import * as jit from '../util/jit'
+import {
+  equal,
+  joinWithAnd,
+  findClassListsInDocument,
+  getClassNamesInClassList,
+  getClassNameDecls,
+  getClassNameMeta,
+  jit,
+  State,
+  Settings
+} from '../util'
 
 export async function getCssConflictDiagnostics(
   state: State,
@@ -19,7 +24,7 @@ export async function getCssConflictDiagnostics(
   let diagnostics: CssConflictDiagnostic[] = []
   const classLists = await findClassListsInDocument(state, document)
 
-  classLists.forEach((classList) => {
+  classLists.forEach(classList => {
     const classNames = getClassNamesInClassList(classList)
 
     classNames.forEach((className, index) => {
@@ -37,7 +42,7 @@ export async function getCssConflictDiagnostics(
 
         let otherClassNames = classNames.filter((_className, i) => i !== index)
 
-        let conflictingClassNames = otherClassNames.filter((otherClassName) => {
+        let conflictingClassNames = otherClassNames.filter(otherClassName => {
           let { rules } = jit.generateRules(state, [otherClassName.className])
           if (rules.length !== 1) {
             return false
@@ -80,19 +85,17 @@ export async function getCssConflictDiagnostics(
           message: `'${className.className}' applies the same CSS ${
             properties.length === 1 ? 'property' : 'properties'
           } as ${joinWithAnd(
-            conflictingClassNames.map(
-              (conflictingClassName) => `'${conflictingClassName.className}'`
-            )
+            conflictingClassNames.map(conflictingClassName => `'${conflictingClassName.className}'`)
           )}.`,
-          relatedInformation: conflictingClassNames.map((conflictingClassName) => {
+          relatedInformation: conflictingClassNames.map(conflictingClassName => {
             return {
               message: conflictingClassName.className,
               location: {
                 uri: document.uri,
-                range: conflictingClassName.range,
-              },
+                range: conflictingClassName.range
+              }
             }
-          }),
+          })
         })
 
         return
@@ -106,7 +109,7 @@ export async function getCssConflictDiagnostics(
 
       let otherClassNames = classNames.filter((_className, i) => i !== index)
 
-      let conflictingClassNames = otherClassNames.filter((otherClassName) => {
+      let conflictingClassNames = otherClassNames.filter(otherClassName => {
         let otherDecls = getClassNameDecls(state, otherClassName.className)
         if (!otherDecls) return false
 
@@ -136,17 +139,17 @@ export async function getCssConflictDiagnostics(
         message: `'${className.className}' applies the same CSS ${
           properties.length === 1 ? 'property' : 'properties'
         } as ${joinWithAnd(
-          conflictingClassNames.map((conflictingClassName) => `'${conflictingClassName.className}'`)
+          conflictingClassNames.map(conflictingClassName => `'${conflictingClassName.className}'`)
         )}.`,
-        relatedInformation: conflictingClassNames.map((conflictingClassName) => {
+        relatedInformation: conflictingClassNames.map(conflictingClassName => {
           return {
             message: conflictingClassName.className,
             location: {
               uri: document.uri,
-              range: conflictingClassName.range,
-            },
+              range: conflictingClassName.range
+            }
           }
-        }),
+        })
       })
     })
   })

@@ -1,13 +1,18 @@
-import { State } from './util/state'
-import type { Hover, TextDocument, Position } from 'vscode-languageserver'
-import { stringifyCss, stringifyConfigValue } from './util/stringify'
-const dlv = require('dlv')
-import { isCssContext } from './util/css'
-import { findClassNameAtPosition } from './util/find'
-import { validateApply } from './util/validateApply'
-import { getClassNameParts } from './util/getClassNameAtPosition'
-import * as jit from './util/jit'
-import { validateConfigPath } from './diagnostics/getInvalidConfigPathDiagnostics'
+import dlv from 'dlv'
+import { Hover } from 'vscode-languageserver'
+import { TextDocument, Position } from 'vscode-languageserver-textdocument'
+
+import {
+  stringifyCss,
+  stringifyConfigValue,
+  isCssContext,
+  findClassNameAtPosition,
+  validateApply,
+  getClassNameParts,
+  State,
+  jit
+} from './util'
+import { validateConfigPath } from './diagnostics'
 
 export async function doHover(
   state: State,
@@ -25,7 +30,7 @@ function provideCssHelperHover(state: State, document: TextDocument, position: P
 
   const line = document.getText({
     start: { line: position.line, character: 0 },
-    end: { line: position.line + 1, character: 0 },
+    end: { line: position.line + 1, character: 0 }
   })
 
   const match = line.match(/(?<helper>theme|config)\((?<quote>['"])(?<key>[^)]+)\k<quote>\)/)
@@ -42,8 +47,8 @@ function provideCssHelperHover(state: State, document: TextDocument, position: P
   let key = match.groups.key
     .split(/(\[[^\]]+\]|\.)/)
     .filter(Boolean)
-    .filter((x) => x !== '.')
-    .map((x) => x.replace(/^\[([^\]]+)\]$/, '$1'))
+    .filter(x => x !== '.')
+    .map(x => x.replace(/^\[([^\]]+)\]$/, '$1'))
 
   if (key.length === 0) return null
 
@@ -58,14 +63,17 @@ function provideCssHelperHover(state: State, document: TextDocument, position: P
   if (value === null) return null
 
   return {
-    contents: { kind: 'markdown', value: ['```plaintext', value, '```'].join('\n') },
+    contents: {
+      kind: 'markdown',
+      value: ['```plaintext', value, '```'].join('\n')
+    },
     range: {
       start: { line: position.line, character: startChar },
       end: {
         line: position.line,
-        character: endChar,
-      },
-    },
+        character: endChar
+      }
+    }
   }
 }
 
@@ -87,9 +95,9 @@ async function provideClassNameHover(
     return {
       contents: {
         language: 'css',
-        value: await jit.stringifyRoot(state, root, document.uri),
+        value: await jit.stringifyRoot(state, root, document.uri)
       },
-      range: className.range,
+      range: className.range
     }
   }
 
@@ -111,7 +119,7 @@ async function provideClassNameHover(
     {
       tabSize: dlv(settings, 'editor.tabSize', 2),
       showPixelEquivalents: dlv(settings, 'tailwindCSS.showPixelEquivalents', true),
-      rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16),
+      rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16)
     }
   )
 
@@ -120,8 +128,8 @@ async function provideClassNameHover(
   return {
     contents: {
       language: 'css',
-      value: css,
+      value: css
     },
-    range: className.range,
+    range: className.range
   }
 }

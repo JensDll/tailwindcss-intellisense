@@ -1,12 +1,16 @@
-import { State, Settings } from '../util/state'
-import type { TextDocument, Range, DiagnosticSeverity } from 'vscode-languageserver'
+import { TextDocument, Range } from 'vscode-languageserver-textdocument'
+
 import { InvalidScreenDiagnostic, DiagnosticKind } from './types'
-import { isCssDoc } from '../util/css'
-import { getLanguageBoundaries } from '../util/getLanguageBoundaries'
-import { findAll, indexToPosition } from '../util/find'
-import { closest } from '../util/closest'
-import { absoluteRange } from '../util/absoluteRange'
-const dlv = require('dlv')
+import {
+  isCssDoc,
+  getLanguageBoundaries,
+  findAll,
+  State,
+  indexToPosition,
+  closest,
+  absoluteRange,
+  Settings
+} from '../util'
 
 export function getInvalidScreenDiagnostics(
   state: State,
@@ -27,11 +31,11 @@ export function getInvalidScreenDiagnostics(
     ranges.push(...boundaries.css)
   }
 
-  ranges.forEach((range) => {
+  ranges.forEach(range => {
     let text = document.getText(range)
     let matches = findAll(/(?:\s|^)@screen\s+(?<screen>[^\s{]+)/g, text)
 
-    matches.forEach((match) => {
+    matches.forEach(match => {
       if (state.screens.includes(match.groups.screen)) {
         return null
       }
@@ -53,7 +57,7 @@ export function getInvalidScreenDiagnostics(
               text,
               match.index + match[0].length - match.groups.screen.length
             ),
-            end: indexToPosition(text, match.index + match[0].length),
+            end: indexToPosition(text, match.index + match[0].length)
           },
           range
         ),
@@ -62,7 +66,7 @@ export function getInvalidScreenDiagnostics(
             ? 1 /* DiagnosticSeverity.Error */
             : 2 /* DiagnosticSeverity.Warning */,
         message,
-        suggestions,
+        suggestions
       })
     })
   })

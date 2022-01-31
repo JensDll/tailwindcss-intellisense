@@ -1,8 +1,7 @@
-import { findClassNamesInRange } from '../util/find'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+
 import { InvalidApplyDiagnostic, DiagnosticKind } from './types'
-import { Settings, State } from '../util/state'
-import type { TextDocument, DiagnosticSeverity } from 'vscode-languageserver'
-import { validateApply } from '../util/validateApply'
+import { findClassNamesInRange, validateApply, Settings, State } from '../util'
 
 export async function getInvalidApplyDiagnostics(
   state: State,
@@ -14,7 +13,7 @@ export async function getInvalidApplyDiagnostics(
 
   const classNames = await findClassNamesInRange(state, document, undefined, 'css', false)
 
-  let diagnostics: InvalidApplyDiagnostic[] = classNames.map((className) => {
+  let diagnostics: InvalidApplyDiagnostic[] = classNames.map(className => {
     let result = validateApply(state, className.className)
 
     if (result === null || result.isApplyable === true) {
@@ -29,7 +28,7 @@ export async function getInvalidApplyDiagnostics(
           : 2 /* DiagnosticSeverity.Warning */,
       range: className.range,
       message: result.reason,
-      className,
+      className
     }
   })
 

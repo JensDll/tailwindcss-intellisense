@@ -1,10 +1,20 @@
-let postcss = require('postcss')
-const esmImport = require('esm')(module)
-const process = esmImport('../src/class-names/extractClassNames.js')
-postcss = postcss([postcss.plugin('no-op', () => () => {})])
+import postcss from 'postcss'
 
-const processCss = async (css) =>
-  process(await postcss.process(css, { from: undefined }))
+import { extractClassNames } from '../src/lib/extractClassNames'
+
+const processCss = async (css: any) =>
+  extractClassNames(
+    (
+      await postcss([
+        {
+          postcssPlugin: 'no-op',
+          Once: () => {}
+        }
+      ]).process(css, {
+        from: undefined
+      })
+    ).root
+  )
 
 test('processes default container plugin', async () => {
   const result = await processCss(`
@@ -36,41 +46,59 @@ test('processes default container plugin', async () => {
       }
     }
   `)
-  expect(result).toEqual({
+
+  expect(result).toStrictEqual({
     context: {},
     classNames: {
-      container: [
-        { __context: [], __rule: true, __scope: null, width: '100%' },
-        {
-          __rule: true,
-          __scope: null,
-          __context: ['@media (min-width: 640px)'],
-          'max-width': '640px',
-        },
-        {
-          __rule: true,
-          __scope: null,
-          __context: ['@media (min-width: 768px)'],
-          'max-width': '768px',
-        },
-        {
-          __rule: true,
-          __scope: null,
-          __context: ['@media (min-width: 1024px)'],
-          'max-width': '1024px',
-        },
-        {
-          __rule: true,
-          __scope: null,
-          __context: ['@media (min-width: 1280px)'],
-          'max-width': '1280px',
-        },
-      ],
-    },
+      container: {
+        __info: [
+          {
+            __context: [],
+            __pseudo: [],
+            __rule: true,
+            __scope: null,
+            __source: undefined,
+            width: '100%'
+          },
+          {
+            __context: ['@media (min-width: 640px)'],
+            __pseudo: [],
+            __rule: true,
+            __scope: null,
+            __source: undefined,
+            'max-width': '640px'
+          },
+          {
+            __context: ['@media (min-width: 768px)'],
+            __pseudo: [],
+            __rule: true,
+            __scope: null,
+            __source: undefined,
+            'max-width': '768px'
+          },
+          {
+            __context: ['@media (min-width: 1024px)'],
+            __pseudo: [],
+            __rule: true,
+            __scope: null,
+            __source: undefined,
+            'max-width': '1024px'
+          },
+          {
+            __context: ['@media (min-width: 1280px)'],
+            __pseudo: [],
+            __rule: true,
+            __scope: null,
+            __source: undefined,
+            'max-width': '1280px'
+          }
+        ]
+      }
+    }
   })
 })
 
-test('foo', async () => {
+test.only('foo', async () => {
   const result = await processCss(`
     @media (min-width: 640px) {
       .sm__TAILWIND_SEPARATOR__bg-red {
@@ -88,7 +116,7 @@ test('foo', async () => {
   expect(result).toEqual({
     context: {
       sm: ['@media (min-width: 640px)'],
-      hover: [':hover'],
+      hover: [':hover']
     },
     classNames: {
       sm: {
@@ -96,7 +124,7 @@ test('foo', async () => {
           __rule: true,
           __scope: null,
           __context: ['@media (min-width: 640px)'],
-          'background-color': 'red',
+          'background-color': 'red'
         },
         hover: {
           'bg-red': {
@@ -104,9 +132,9 @@ test('foo', async () => {
             __scope: null,
             __context: ['@media (min-width: 640px)'],
             __pseudo: [':hover'],
-            'background-color': 'red',
-          },
-        },
+            'background-color': 'red'
+          }
+        }
       },
       hover: {
         'bg-red': {
@@ -114,10 +142,10 @@ test('foo', async () => {
           __scope: null,
           __pseudo: [':hover'],
           __context: [],
-          'background-color': 'red',
-        },
-      },
-    },
+          'background-color': 'red'
+        }
+      }
+    }
   })
 })
 
@@ -135,9 +163,9 @@ test('processes basic css', async () => {
         __rule: true,
         __scope: null,
         __context: [],
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -156,9 +184,9 @@ test('processes pseudo selectors', async () => {
         __scope: null,
         __context: [],
         __pseudo: [':first-child', '::after'],
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -175,15 +203,15 @@ test('processes pseudo selectors in scope', async () => {
       scope: {
         __context: [],
         __pseudo: [':hover'],
-        __scope: null,
+        __scope: null
       },
       'bg-red': {
         __context: [],
         __rule: true,
         __scope: '.scope:hover',
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -202,15 +230,15 @@ test('processes multiple class names in the same rule', async () => {
         __rule: true,
         __scope: null,
         __context: [],
-        'background-color': 'red',
+        'background-color': 'red'
       },
       'bg-red-again': {
         __rule: true,
         __scope: null,
         __context: [],
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -230,9 +258,9 @@ test('processes media queries', async () => {
         __rule: true,
         __scope: null,
         __context: ['@media (min-width: 768px)'],
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -254,9 +282,9 @@ test('processes nested at-rules', async () => {
         __rule: true,
         __scope: null,
         __context: ['@supports (display: grid)', '@media (min-width: 768px)'],
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -278,9 +306,9 @@ test('merges declarations', async () => {
         __scope: null,
         __context: [],
         'background-color': 'red',
-        color: 'white',
-      },
-    },
+        color: 'white'
+      }
+    }
   })
 })
 
@@ -296,15 +324,15 @@ test('processes class name scope', async () => {
     classNames: {
       scope: {
         __context: [],
-        __scope: null,
+        __scope: null
       },
       'bg-red': {
         __rule: true,
         __context: [],
         __scope: '.scope',
-        'background-color': 'red',
-      },
-    },
+        'background-color': 'red'
+      }
+    }
   })
 })
 
@@ -332,22 +360,22 @@ test('processes multiple scopes for the same class name', async () => {
           __rule: true,
           __context: [],
           __scope: '.scope1',
-          'background-color': 'red',
+          'background-color': 'red'
         },
         {
           __rule: true,
           __context: [],
           __scope: '.scope2 +',
-          'background-color': 'red',
+          'background-color': 'red'
         },
         {
           __rule: true,
           __context: [],
           __scope: '.scope3 >',
-          'background-color': 'red',
-        },
-      ],
-    },
+          'background-color': 'red'
+        }
+      ]
+    }
   })
 })
 
@@ -366,8 +394,8 @@ test('processes multiple properties of the same name', async () => {
         __rule: true,
         __context: [],
         __scope: null,
-        'background-color': ['blue', 'red'],
-      },
-    },
+        'background-color': ['blue', 'red']
+      }
+    }
   })
 })

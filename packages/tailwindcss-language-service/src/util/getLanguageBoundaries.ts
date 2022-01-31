@@ -1,4 +1,5 @@
-import type { TextDocument, Range } from 'vscode-languageserver'
+import { TextDocument, Range } from 'vscode-languageserver-textdocument'
+
 import { isVueDoc, isHtmlDoc, isSvelteDoc } from './html'
 import { State } from './state'
 import { findAll, indexToPosition } from './find'
@@ -24,7 +25,7 @@ export function getLanguageBoundaries(state: State, doc: TextDocument): Language
         end: indexToPosition(
           text,
           blocks[i].index + blocks[i][0].length - blocks[i].groups.close.length
-        ),
+        )
       }
       if (blocks[i].groups.type === 'style') {
         cssRanges.push(range)
@@ -35,7 +36,7 @@ export function getLanguageBoundaries(state: State, doc: TextDocument): Language
 
     return {
       html: htmlRanges,
-      css: cssRanges,
+      css: cssRanges
     }
   }
 
@@ -52,25 +53,25 @@ export function getLanguageBoundaries(state: State, doc: TextDocument): Language
     for (let i = 0; i < styleBlocks.length; i++) {
       htmlRanges.push({
         start: indexToPosition(text, currentIndex),
-        end: indexToPosition(text, styleBlocks[i].index),
+        end: indexToPosition(text, styleBlocks[i].index)
       })
       cssRanges.push({
         start: indexToPosition(text, styleBlocks[i].index + styleBlocks[i].groups.open.length),
         end: indexToPosition(
           text,
           styleBlocks[i].index + styleBlocks[i][0].length - styleBlocks[i].groups.close.length
-        ),
+        )
       })
       currentIndex = styleBlocks[i].index + styleBlocks[i][0].length
     }
     htmlRanges.push({
       start: indexToPosition(text, currentIndex),
-      end: indexToPosition(text, text.length),
+      end: indexToPosition(text, text.length)
     })
 
     return {
       html: htmlRanges,
-      css: cssRanges,
+      css: cssRanges
     }
   }
 

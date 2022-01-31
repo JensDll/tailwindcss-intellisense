@@ -5,17 +5,9 @@ export function createMultiRegexp(regexString: string) {
   let captureGroupIndex = -1
 
   for (let i = 0; i < regexString.length; i++) {
-    if (
-      !insideCharClass &&
-      regexString[i] === '[' &&
-      regexString[i - 1] !== '\\'
-    ) {
+    if (!insideCharClass && regexString[i] === '[' && regexString[i - 1] !== '\\') {
       insideCharClass = true
-    } else if (
-      insideCharClass &&
-      regexString[i] === ']' &&
-      regexString[i - 1] !== '\\'
-    ) {
+    } else if (insideCharClass && regexString[i] === ']' && regexString[i - 1] !== '\\') {
       insideCharClass = false
     } else if (
       !insideCharClass &&
@@ -41,17 +33,16 @@ export function createMultiRegexp(regexString: string) {
 
   const regex = new MultiRegexp(
     new RegExp(
-      regexString.replace(re, (m) => m.substr(0, m.length - 2)),
+      regexString.replace(re, m => m.substr(0, m.length - 2)),
       'g'
     )
   )
 
-  let groupIndex =
-    1 + nonCaptureGroupIndexes.filter((i) => i < captureGroupIndex).length
+  let groupIndex = 1 + nonCaptureGroupIndexes.filter(i => i < captureGroupIndex).length
 
   return {
     exec: (str: string) => {
       return regex.execForGroup(str, groupIndex)
-    },
+    }
   }
 }

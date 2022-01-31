@@ -1,19 +1,19 @@
 {
-  "include": ["src", "../../types"],
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "esnext",
-    "lib": ["ES2020"],
-    "importHelpers": true,
-    "declaration": true,
-    "sourceMap": true,
+    "composite": true,
     "rootDir": "./src",
-    "strict": false,
+    "outDir": "dist",
+    "module": "ESNext",
+    "target": "ES2019",
+    "lib": ["ESNext"],
+    "declaration": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "downlevelIteration": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "jsx": "react",
-    "esModuleInterop": true
-  }
+    "jsx": "react"
+  },
+  "include": ["src"]
 }

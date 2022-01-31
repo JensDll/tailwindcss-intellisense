@@ -1,6 +1,5 @@
 {
   "version": "0.2.0",
-  // List of configurations. Add new configurations or edit existing ones.
   "configurations": [
     {
       "type": "extensionHost",
@@ -8,30 +7,29 @@
       "name": "Launch Client",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages/vscode-tailwindcss"],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/vscode-tailwindcss/dist/**/*.js"]
-      // "preLaunchTask": "npm: dev"
+      "outFiles": ["${workspaceRoot}/packages/vscode-tailwindcss/dist/*.js"]
     },
     {
       "type": "node",
       "request": "attach",
       "name": "Attach to Server 6011",
-      "address": "localhost",
-      "protocol": "inspector",
       "port": 6011,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/vscode-tailwindcss/dist/**/*.js"]
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/packages/tailwindcss-language-server/dist/*.js"]
     },
     {
       "type": "node",
       "request": "attach",
       "name": "Attach to Server 6012",
-      "address": "localhost",
-      "protocol": "inspector",
       "port": 6012,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/vscode-tailwindcss/dist/**/*.js"]
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/packages/tailwindcss-language-server/dist/*.js"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Client + Server",
+      "configurations": ["Launch Client", "Attach to Server 6011", "Attach to Server 6012"]
     }
   ]
 }

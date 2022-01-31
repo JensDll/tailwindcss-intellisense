@@ -48,7 +48,7 @@ var unitless = {
   'fill-opacity': true,
   'stroke-dashoffset': true,
   'stroke-opacity': true,
-  'stroke-width': true,
+  'stroke-width': true
 }
 
 function dashify(str) {

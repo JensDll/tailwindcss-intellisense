@@ -1,42 +1,50 @@
-import { State } from './util/state'
-import type {
+import * as emmetHelper from '@vscode/emmet-helper'
+import {
   CompletionItem,
   CompletionItemKind,
   Range,
   MarkupKind,
   CompletionList,
-  TextDocument,
   Position,
-  CompletionContext,
+  CompletionContext
 } from 'vscode-languageserver'
-const dlv = require('dlv')
-import removeMeta from './util/removeMeta'
-import { getColor, getColorFromValue } from './util/color'
-import { isHtmlContext } from './util/html'
-import { isCssContext } from './util/css'
-import { findLast, matchClassAttributes } from './util/find'
-import { stringifyConfigValue, stringifyCss } from './util/stringify'
-import { stringifyScreen, Screen } from './util/screens'
-import isObject from './util/isObject'
-import * as emmetHelper from 'vscode-emmet-helper-bundled'
-import { isValidLocationForEmmetAbbreviation } from './util/isValidLocationForEmmetAbbreviation'
-import { isJsContext } from './util/js'
-import { naturalExpand } from './util/naturalExpand'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import dlv from 'dlv'
 import semver from 'semver'
-import { docsUrl } from './util/docsUrl'
-import { ensureArray } from './util/array'
-import { getClassAttributeLexer, getComputedClassAttributeLexer } from './util/lexers'
-import { validateApply } from './util/validateApply'
-import { flagEnabled } from './util/flagEnabled'
-import { remToPx } from './util/remToPx'
-import { createMultiRegexp } from './util/createMultiRegexp'
-import * as jit from './util/jit'
-import { getVariantsFromClassName } from './util/getVariantsFromClassName'
 import * as culori from 'culori'
 
-let isUtil = (className) =>
+import {
+  jit,
+  removeMeta,
+  getColor,
+  getColorFromValue,
+  isHtmlContext,
+  isCssContext,
+  findLast,
+  matchClassAttributes,
+  stringifyConfigValue,
+  stringifyCss,
+  stringifyScreen,
+  isObject,
+  isValidLocationForEmmetAbbreviation,
+  isJsContext,
+  naturalExpand,
+  ensureArray,
+  getClassAttributeLexer,
+  getComputedClassAttributeLexer,
+  flagEnabled,
+  validateApply,
+  remToPx,
+  docsUrl,
+  createMultiRegexp,
+  getVariantsFromClassName,
+  Screen,
+  State
+} from './util'
+
+let isUtil = className =>
   Array.isArray(className.__info)
-    ? className.__info.some((x) => x.__source === 'utilities')
+    ? className.__info.some(x => x.__source === 'utilities')
     : className.__info.__source === 'utilities'
 
 export function completionsFromClassList(
@@ -59,8 +67,8 @@ export function completionsFromClassList(
     ...classListRange,
     start: {
       ...classListRange.start,
-      character: classListRange.end.character - partialClassName.length,
-    },
+      character: classListRange.end.character - partialClassName.length
+    }
   }
 
   if (state.jit) {
@@ -102,10 +110,10 @@ export function completionsFromClassList(
               data: [className],
               textEdit: {
                 newText: className,
-                range: replacementRange,
-              },
+                range: replacementRange
+              }
             }
-          }),
+          })
         }
       }
     }
@@ -144,12 +152,12 @@ export function completionsFromClassList(
               data: 'variant',
               command: {
                 title: '',
-                command: 'editor.action.triggerSuggest',
+                command: 'editor.action.triggerSuggest'
               },
               sortText: '-' + naturalExpand(index),
               textEdit: {
                 newText: resultingVariants[resultingVariants.length - 1] + sep,
-                range: replacementRange,
+                range: replacementRange
               },
               additionalTextEdits:
                 shouldSortVariants && resultingVariants.length > 1
@@ -160,16 +168,16 @@ export function completionsFromClassList(
                         range: {
                           start: {
                             ...classListRange.start,
-                            character: classListRange.end.character - partialClassName.length,
+                            character: classListRange.end.character - partialClassName.length
                           },
                           end: {
                             ...replacementRange.start,
-                            character: replacementRange.start.character,
-                          },
-                        },
-                      },
+                            character: replacementRange.start.character
+                          }
+                        }
+                      }
                     ]
-                  : [],
+                  : []
             } as CompletionItem
           })
       )
@@ -195,11 +203,11 @@ export function completionsFromClassList(
               data: [...existingVariants, important ? `!${className}` : className],
               textEdit: {
                 newText: className,
-                range: replacementRange,
-              },
+                range: replacementRange
+              }
             } as CompletionItem
           })
-        ),
+        )
       }
     }
 
@@ -208,7 +216,7 @@ export function completionsFromClassList(
       items: items
         .concat(
           Object.keys(state.classNames.classNames)
-            .filter((className) => {
+            .filter(className => {
               let item = state.classNames.classNames[className]
               if (existingVariants.length === 0) {
                 return item.__info
@@ -235,12 +243,12 @@ export function completionsFromClassList(
                 data: [...existingVariants, important ? `!${className}` : className],
                 textEdit: {
                   newText: className,
-                  range: replacementRange,
-                },
+                  range: replacementRange
+                }
               } as CompletionItem
             })
         )
-        .filter((item) => {
+        .filter(item => {
           if (item === null) {
             return false
           }
@@ -248,7 +256,7 @@ export function completionsFromClassList(
             return false
           }
           return true
-        }),
+        })
     }
   }
 
@@ -262,8 +270,8 @@ export function completionsFromClassList(
         ...replacementRange,
         start: {
           ...replacementRange.start,
-          character: replacementRange.start.character + keys.join(sep).length + sep.length,
-        },
+          character: replacementRange.start.character + keys.join(sep).length + sep.length
+        }
       }
       break
     }
@@ -272,8 +280,8 @@ export function completionsFromClassList(
   return {
     isIncomplete: false,
     items: Object.keys(isSubset ? subset : state.classNames.classNames)
-      .filter((k) => k !== '__info')
-      .filter((className) => isContextItem(state, [...subsetKey, className]))
+      .filter(k => k !== '__info')
+      .filter(className => isContextItem(state, [...subsetKey, className]))
       .map((className, index): CompletionItem => {
         return {
           label: className + sep,
@@ -281,19 +289,19 @@ export function completionsFromClassList(
           documentation: null,
           command: {
             title: '',
-            command: 'editor.action.triggerSuggest',
+            command: 'editor.action.triggerSuggest'
           },
           sortText: '-' + naturalExpand(index),
           data: [...subsetKey, className],
           textEdit: {
             newText: className + sep,
-            range: replacementRange,
-          },
+            range: replacementRange
+          }
         }
       })
       .concat(
         Object.keys(isSubset ? subset : state.classNames.classNames)
-          .filter((className) =>
+          .filter(className =>
             dlv(state.classNames.classNames, [...subsetKey, className, '__info'])
           )
           .map((className, index) => {
@@ -316,12 +324,12 @@ export function completionsFromClassList(
               data: [...subsetKey, className],
               textEdit: {
                 newText: className,
-                range: replacementRange,
-              },
+                range: replacementRange
+              }
             }
           })
       )
-      .filter((item) => {
+      .filter(item => {
         if (item === null) {
           return false
         }
@@ -329,7 +337,7 @@ export function completionsFromClassList(
           return false
         }
         return true
-      }),
+      })
   }
 }
 
@@ -341,7 +349,7 @@ async function provideClassAttributeCompletions(
 ): Promise<CompletionList> {
   let str = document.getText({
     start: document.positionAt(Math.max(0, document.offsetAt(position) - 1000)),
-    end: position,
+    end: position
   })
 
   let matches = matchClassAttributes(
@@ -362,7 +370,7 @@ async function provideClassAttributeCompletions(
   lexer.reset(str.substr(match.index + match[0].length - 1))
 
   try {
-    let tokens = Array.from(lexer)
+    let tokens: any[] = Array.from(lexer)
     let last = tokens[tokens.length - 1]
     if (last.type.startsWith('start') || last.type === 'classlist') {
       let classList = ''
@@ -380,9 +388,9 @@ async function provideClassAttributeCompletions(
         {
           start: {
             line: position.line,
-            character: position.character - classList.length,
+            character: position.character - classList.length
           },
-          end: position,
+          end: position
         },
         undefined,
         document,
@@ -407,7 +415,7 @@ async function provideCustomClassNameCompletions(
 
   const searchRange: Range = {
     start: document.positionAt(Math.max(0, positionOffset - 1000)),
-    end: document.positionAt(positionOffset + 1000),
+    end: document.positionAt(positionOffset + 1000)
   }
 
   let str = document.getText(searchRange)
@@ -449,9 +457,9 @@ async function provideCustomClassNameCompletions(
           return completionsFromClassList(state, classList, {
             start: {
               line: position.line,
-              character: position.character - classList.length,
+              character: position.character - classList.length
             },
-            end: position,
+            end: position
           })
         }
       }
@@ -468,7 +476,7 @@ function provideAtApplyCompletions(
 ): CompletionList {
   let str = document.getText({
     start: { line: Math.max(position.line - 30, 0), character: 0 },
-    end: position,
+    end: position
   })
 
   const match = findLast(/@apply\s+(?<classList>[^;}]*)$/gi, str)
@@ -485,11 +493,11 @@ function provideAtApplyCompletions(
     {
       start: {
         line: position.line,
-        character: position.character - classList.length,
+        character: position.character - classList.length
       },
-      end: position,
+      end: position
     },
-    (item) => {
+    item => {
       if (item.kind === 9) {
         return (
           semver.gte(state.version, '2.0.0-alpha.1') || flagEnabled(state, 'applyComplexClasses')
@@ -530,7 +538,7 @@ function provideCssHelperCompletions(
   let text = document.getText({
     start: { line: position.line, character: 0 },
     // read one extra character so we can see if it's a ] later
-    end: { line: position.line, character: position.character + 1 },
+    end: { line: position.line, character: position.character + 1 }
   })
 
   const match = text
@@ -601,14 +609,14 @@ function provideCssHelperCompletions(
             start: {
               line: position.line,
               character:
-                position.character - keys[keys.length - 1].length - (replaceDot ? 1 : 0) - offset,
+                position.character - keys[keys.length - 1].length - (replaceDot ? 1 : 0) - offset
             },
-            end: position,
-          },
+            end: position
+          }
         },
-        data: 'helper',
+        data: 'helper'
       }
-    }),
+    })
   }
 }
 
@@ -623,7 +631,7 @@ function provideTailwindDirectiveCompletions(
 
   let text = document.getText({
     start: { line: position.line, character: 0 },
-    end: position,
+    end: position
   })
 
   const match = text.match(/^\s*@tailwind\s+(?<partial>[^\s]*)$/i)
@@ -638,41 +646,41 @@ function provideTailwindDirectiveCompletions(
             label: 'base',
             documentation: {
               kind: 'markdown' as typeof MarkupKind.Markdown,
-              value: `This injects Tailwind’s base styles and any base styles registered by plugins.\n\n[Tailwind CSS Documentation](${docsUrl(
+              value: `This injects Tailwind's base styles and any base styles registered by plugins.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'functions-and-directives/#tailwind'
-              )})`,
-            },
+              )})`
+            }
           }
         : {
             label: 'preflight',
             documentation: {
               kind: 'markdown' as typeof MarkupKind.Markdown,
-              value: `This injects Tailwind’s base styles, which is a combination of Normalize.css and some additional base styles.\n\n[Tailwind CSS Documentation](${docsUrl(
+              value: `This injects Tailwind's base styles, which is a combination of Normalize.css and some additional base styles.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'functions-and-directives/#tailwind'
-              )})`,
-            },
+              )})`
+            }
           },
       {
         label: 'components',
         documentation: {
           kind: 'markdown' as typeof MarkupKind.Markdown,
-          value: `This injects Tailwind’s component classes and any component classes registered by plugins.\n\n[Tailwind CSS Documentation](${docsUrl(
+          value: `This injects Tailwind's component classes and any component classes registered by plugins.\n\n[Tailwind CSS Documentation](${docsUrl(
             state.version,
             'functions-and-directives/#tailwind'
-          )})`,
-        },
+          )})`
+        }
       },
       {
         label: 'utilities',
         documentation: {
           kind: 'markdown' as typeof MarkupKind.Markdown,
-          value: `This injects Tailwind’s utility classes and any utility classes registered by plugins.\n\n[Tailwind CSS Documentation](${docsUrl(
+          value: `This injects Tailwind's utility classes and any utility classes registered by plugins.\n\n[Tailwind CSS Documentation](${docsUrl(
             state.version,
             'functions-and-directives/#tailwind'
-          )})`,
-        },
+          )})`
+        }
       },
       state.jit && semver.gte(state.version, '2.1.99')
         ? {
@@ -682,8 +690,8 @@ function provideTailwindDirectiveCompletions(
               value: `Use this directive to control where Tailwind injects the utility variants.\n\nThis directive is considered an advanced escape hatch and it is recommended to omit it whenever possible. If omitted, Tailwind will append these classes to the very end of your stylesheet by default.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'just-in-time-mode#variants-are-inserted-at-tailwind-variants'
-              )})`,
-            },
+              )})`
+            }
           }
         : {
             label: 'screens',
@@ -692,10 +700,10 @@ function provideTailwindDirectiveCompletions(
               value: `Use this directive to control where Tailwind injects the responsive variations of each utility.\n\nIf omitted, Tailwind will append these classes to the very end of your stylesheet by default.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'functions-and-directives/#tailwind'
-              )})`,
-            },
-          },
-    ].map((item) => ({
+              )})`
+            }
+          }
+    ].map(item => ({
       ...item,
       kind: 21,
       data: '@tailwind',
@@ -704,12 +712,12 @@ function provideTailwindDirectiveCompletions(
         range: {
           start: {
             line: position.line,
-            character: position.character - match.groups.partial.length,
+            character: position.character - match.groups.partial.length
           },
-          end: position,
-        },
-      },
-    })),
+          end: position
+        }
+      }
+    }))
   }
 }
 
@@ -728,7 +736,7 @@ function provideVariantsDirectiveCompletions(
 
   let text = document.getText({
     start: { line: position.line, character: 0 },
-    end: position,
+    end: position
   })
 
   const match = text.match(/^\s*@variants\s+(?<partial>[^}]*)$/i)
@@ -744,13 +752,13 @@ function provideVariantsDirectiveCompletions(
 
   if (state.jit) {
     possibleVariants.unshift('responsive')
-    possibleVariants = possibleVariants.filter((v) => !state.screens.includes(v))
+    possibleVariants = possibleVariants.filter(v => !state.screens.includes(v))
   }
 
   return {
     isIncomplete: false,
     items: possibleVariants
-      .filter((v) => existingVariants.indexOf(v) === -1)
+      .filter(v => existingVariants.indexOf(v) === -1)
       .map((variant, index) => ({
         // TODO: detail
         label: variant,
@@ -763,12 +771,12 @@ function provideVariantsDirectiveCompletions(
           range: {
             start: {
               line: position.line,
-              character: position.character - parts[parts.length - 1].length,
+              character: position.character - parts[parts.length - 1].length
             },
-            end: position,
-          },
-        },
-      })),
+            end: position
+          }
+        }
+      }))
   }
 }
 
@@ -783,7 +791,7 @@ function provideLayerDirectiveCompletions(
 
   let text = document.getText({
     start: { line: position.line, character: 0 },
-    end: position,
+    end: position
   })
 
   const match = text.match(/^\s*@layer\s+(?<partial>[^\s]*)$/i)
@@ -802,12 +810,12 @@ function provideLayerDirectiveCompletions(
         range: {
           start: {
             line: position.line,
-            character: position.character - match.groups.partial.length,
+            character: position.character - match.groups.partial.length
           },
-          end: position,
-        },
-      },
-    })),
+          end: position
+        }
+      }
+    }))
   }
 }
 
@@ -822,7 +830,7 @@ function provideScreenDirectiveCompletions(
 
   let text = document.getText({
     start: { line: position.line, character: 0 },
-    end: position,
+    end: position
   })
 
   const match = text.match(/^\s*@screen\s+(?<partial>[^\s]*)$/i)
@@ -845,12 +853,12 @@ function provideScreenDirectiveCompletions(
         range: {
           start: {
             line: position.line,
-            character: position.character - match.groups.partial.length,
+            character: position.character - match.groups.partial.length
           },
-          end: position,
-        },
-      },
-    })),
+          end: position
+        }
+      }
+    }))
   }
 }
 
@@ -865,7 +873,7 @@ function provideCssDirectiveCompletions(
 
   let text = document.getText({
     start: { line: position.line, character: 0 },
-    end: position,
+    end: position
   })
 
   const match = text.match(/^\s*@(?<partial>[a-z]*)$/i)
@@ -877,13 +885,13 @@ function provideCssDirectiveCompletions(
       label: '@tailwind',
       documentation: {
         kind: 'markdown' as typeof MarkupKind.Markdown,
-        value: `Use the \`@tailwind\` directive to insert Tailwind’s \`base\`, \`components\`, \`utilities\` and \`${
+        value: `Use the \`@tailwind\` directive to insert Tailwind's \`base\`, \`components\`, \`utilities\` and \`${
           state.jit && semver.gte(state.version, '2.1.99') ? 'variants' : 'screens'
         }\` styles into your CSS.\n\n[Tailwind CSS Documentation](${docsUrl(
           state.version,
           'functions-and-directives/#tailwind'
-        )})`,
-      },
+        )})`
+      }
     },
     {
       label: '@screen',
@@ -892,8 +900,8 @@ function provideCssDirectiveCompletions(
         value: `The \`@screen\` directive allows you to create media queries that reference your breakpoints by name instead of duplicating their values in your own CSS.\n\n[Tailwind CSS Documentation](${docsUrl(
           state.version,
           'functions-and-directives/#screen'
-        )})`,
-      },
+        )})`
+      }
     },
     {
       label: '@apply',
@@ -902,8 +910,8 @@ function provideCssDirectiveCompletions(
         value: `Use \`@apply\` to inline any existing utility classes into your own custom CSS.\n\n[Tailwind CSS Documentation](${docsUrl(
           state.version,
           'functions-and-directives/#apply'
-        )})`,
-      },
+        )})`
+      }
     },
     ...(semver.gte(state.version, '1.8.0')
       ? [
@@ -914,9 +922,9 @@ function provideCssDirectiveCompletions(
               value: `Use the \`@layer\` directive to tell Tailwind which "bucket" a set of custom styles belong to. Valid layers are \`base\`, \`components\`, and \`utilities\`.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'functions-and-directives/#layer'
-              )})`,
-            },
-          },
+              )})`
+            }
+          }
         ]
       : []),
     ...(semver.gte(state.version, '2.99.0')
@@ -929,8 +937,8 @@ function provideCssDirectiveCompletions(
               value: `You can generate \`responsive\`, \`hover\`, \`focus\`, \`active\`, and other variants of your own utilities by wrapping their definitions in the \`@variants\` directive.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'functions-and-directives/#variants'
-              )})`,
-            },
+              )})`
+            }
           },
           {
             label: '@responsive',
@@ -939,15 +947,15 @@ function provideCssDirectiveCompletions(
               value: `You can generate responsive variants of your own classes by wrapping their definitions in the \`@responsive\` directive.\n\n[Tailwind CSS Documentation](${docsUrl(
                 state.version,
                 'functions-and-directives/#responsive'
-              )})`,
-            },
-          },
-        ]),
+              )})`
+            }
+          }
+        ])
   ]
 
   return {
     isIncomplete: false,
-    items: items.map((item) => ({
+    items: items.map(item => ({
       ...item,
       kind: 14,
       data: 'directive',
@@ -956,12 +964,12 @@ function provideCssDirectiveCompletions(
         range: {
           start: {
             line: position.line,
-            character: position.character - match.groups.partial.length - 1,
+            character: position.character - match.groups.partial.length - 1
           },
-          end: position,
-        },
-      },
-    })),
+          end: position
+        }
+      }
+    }))
   }
 }
 
@@ -982,7 +990,9 @@ async function provideEmmetCompletions(
     return null
   }
 
-  const extractAbbreviationResults = emmetHelper.extractAbbreviation(document, position, true)
+  const extractAbbreviationResults = emmetHelper.extractAbbreviation(document, position, {
+    lookAhead: true
+  })
   if (
     !extractAbbreviationResults ||
     !emmetHelper.isAbbreviationValid(syntax, extractAbbreviationResults.abbreviation)
@@ -1005,7 +1015,7 @@ async function provideEmmetCompletions(
     if (
       symbols &&
       symbols.find(
-        (symbol) =>
+        symbol =>
           abbreviation === symbol.name ||
           (abbreviation.startsWith(symbol.name + '.') && !/>|\*|\+/.test(abbreviation))
       )
@@ -1031,9 +1041,9 @@ async function provideEmmetCompletions(
   return completionsFromClassList(state, parts[parts.length - 1], {
     start: {
       line: position.line,
-      character: position.character - parts[parts.length - 1].length,
+      character: position.character - parts[parts.length - 1].length
     },
-    end: position,
+    end: position
   })
 }
 
@@ -1094,7 +1104,7 @@ export async function resolveCompletionItem(
     if (!item.documentation) {
       item.documentation = {
         kind: 'markdown' as typeof MarkupKind.Markdown,
-        value: ['```css', await jit.stringifyRoot(state, root), '```'].join('\n'),
+        value: ['```css', await jit.stringifyRoot(state, root), '```'].join('\n')
       }
     }
     return item
@@ -1110,12 +1120,12 @@ export async function resolveCompletionItem(
       const css = stringifyCss(item.data.join(':'), className, {
         tabSize: dlv(settings, 'editor.tabSize', 2),
         showPixelEquivalents: dlv(settings, 'tailwindCSS.showPixelEquivalents', true),
-        rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16),
+        rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16)
       })
       if (css) {
         item.documentation = {
           kind: 'markdown' as typeof MarkupKind.Markdown,
-          value: ['```css', css, '```'].join('\n'),
+          value: ['```css', css, '```'].join('\n')
         }
       }
     }
@@ -1124,7 +1134,7 @@ export async function resolveCompletionItem(
 }
 
 function isContextItem(state: State, keys: string[]): boolean {
-  const item = dlv(state.classNames.classNames, [keys])
+  const item = dlv(state.classNames.classNames, keys)
 
   if (!isObject(item)) {
     return false
@@ -1132,7 +1142,7 @@ function isContextItem(state: State, keys: string[]): boolean {
   if (!state.classNames.context[keys[keys.length - 1]]) {
     return false
   }
-  if (Object.keys(item).filter((x) => x !== '__info').length > 0) {
+  if (Object.keys(item).filter(x => x !== '__info').length > 0) {
     return true
   }
 
@@ -1143,20 +1153,20 @@ function stringifyDecls(
   obj: any,
   {
     showPixelEquivalents = false,
-    rootFontSize = 16,
+    rootFontSize = 16
   }: Partial<{ showPixelEquivalents: boolean; rootFontSize: number }> = {}
 ): string {
   let props = Object.keys(obj)
-  let nonCustomProps = props.filter((prop) => !prop.startsWith('--'))
+  let nonCustomProps = props.filter(prop => !prop.startsWith('--'))
 
   if (props.length !== nonCustomProps.length && nonCustomProps.length !== 0) {
     props = nonCustomProps
   }
 
   return props
-    .map((prop) =>
+    .map(prop =>
       ensureArray(obj[prop])
-        .map((value) => {
+        .map(value => {
           const px = showPixelEquivalents ? remToPx(value, rootFontSize) : undefined
           return `${prop}: ${value}${px ? `/* ${px} */` : ''};`
         })
@@ -1173,7 +1183,7 @@ async function getCssDetail(state: State, className: any): Promise<string> {
     const settings = await state.editor.getConfiguration()
     return stringifyDecls(removeMeta(className), {
       showPixelEquivalents: dlv(settings, 'tailwindCSS.showPixelEquivalents', true),
-      rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16),
+      rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16)
     })
   }
   return null

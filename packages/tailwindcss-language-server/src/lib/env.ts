@@ -1,7 +1,9 @@
 import Module from 'module'
-import * as path from 'path'
-import resolveFrom from '../util/resolveFrom'
+import path from 'path'
+
 import builtInModules from 'builtin-modules'
+
+import { resolveFrom } from '../util/resolveFrom'
 
 process.env.TAILWIND_MODE = 'build'
 process.env.TAILWIND_DISABLE_TOUCH = 'true'

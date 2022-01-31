@@ -1,4 +1,11 @@
 import './lib/env'
+
+import path from 'path'
+import os from 'os'
+import fs from 'fs'
+import Module from 'module'
+import assert from 'assert'
+
 import {
   CompletionItem,
   CompletionList,
@@ -25,62 +32,54 @@ import {
   HoverRequest,
   DidChangeWatchedFilesNotification,
   FileChangeType,
-  Disposable,
+  Disposable
 } from 'vscode-languageserver/node'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import { URI } from 'vscode-uri'
-import { formatError, showError, SilentError } from './util/error'
+import * as culori from 'culori'
+import namedColors from 'color-name'
 import glob from 'fast-glob'
 import normalizePath from 'normalize-path'
-import * as path from 'path'
-import * as os from 'os'
-import * as fs from 'fs'
 import type * as chokidar from 'chokidar'
 import findUp from 'find-up'
 import minimatch from 'minimatch'
-import resolveFrom, { setPnpApi } from './util/resolveFrom'
-import { AtRule, Container, Node, Result } from 'postcss'
-import Module from 'module'
-import Hook from './lib/hook'
-import semver from 'semver'
+import type { AtRule, Container, Node, Result, Root } from 'postcss'
 import dlv from 'dlv'
-import dset from 'dset'
+import { dset } from 'dset'
+import semver from 'semver'
 import pkgUp from 'pkg-up'
 import stackTrace from 'stack-trace'
-import extractClassNames from './lib/extractClassNames'
 import { klona } from 'klona/full'
-import { doHover } from 'tailwindcss-language-service/src/hoverProvider'
+import { debounce } from 'debounce'
+
 import {
+  doHover,
   doComplete,
   resolveCompletionItem,
-} from 'tailwindcss-language-service/src/completionProvider'
-import {
   State,
   FeatureFlags,
   Settings,
   ClassNames,
-} from 'tailwindcss-language-service/src/util/state'
+  doCodeActions,
+  getDocumentColors,
+  getColor,
+  equal
+} from '@tailwindcss/language-service'
+import { setPnpApi, resolveFrom } from './util/resolveFrom'
+import Hook from './lib/hook'
+import { extractClassNames } from './lib/extractClassNames'
+import { formatError, showError, SilentError } from './util/error'
 import {
   provideDiagnostics,
   updateAllDiagnostics,
-  clearAllDiagnostics,
+  clearAllDiagnostics
 } from './lsp/diagnosticsProvider'
-import { doCodeActions } from 'tailwindcss-language-service/src/codeActions/codeActionProvider'
-import { getDocumentColors } from 'tailwindcss-language-service/src/documentColorProvider'
-import { debounce } from 'debounce'
 import { getModuleDependencies } from './util/getModuleDependencies'
-import assert from 'assert'
-// import postcssLoadConfig from 'postcss-load-config'
 import * as parcel from './watcher/index.js'
-import { generateRules } from 'tailwindcss-language-service/src/util/jit'
-import { getColor } from 'tailwindcss-language-service/src/util/color'
-import * as culori from 'culori'
-import namedColors from 'color-name'
 import preflight from './lib/preflight'
 import tailwindPlugins from './lib/plugins'
 import isExcluded, { DEFAULT_FILES_EXCLUDE } from './util/isExcluded'
 import { getFileFsPath, normalizeFileNameToFsPath } from './util/uri'
-import { equal } from 'tailwindcss-language-service/src/util/array'
 
 let oldReadFileSync = fs.readFileSync
 // @ts-ignore
@@ -107,7 +106,7 @@ const TRIGGER_CHARACTERS = [
   // JIT "important" prefix
   '!',
   // JIT opacity modifiers
-  '/',
+  '/'
 ] as const
 
 const colorNames = Object.keys(namedColors)
@@ -141,7 +140,7 @@ function deletePropertyPath(obj: any, path: string | string[]): void {
 
 function getConfigId(configPath: string, configDependencies: string[]): string {
   return JSON.stringify(
-    [configPath, ...configDependencies].map((file) => [file, fs.statSync(file).mtimeMs])
+    [configPath, ...configDependencies].map(file => [file, fs.statSync(file).mtimeMs])
   )
 }
 
@@ -220,12 +219,12 @@ async function createProjectService(
     let [editor, tailwindCSS] = await Promise.all([
       connection.workspace.getConfiguration({
         section: 'editor',
-        scopeUri: uri,
+        scopeUri: uri
       }),
       connection.workspace.getConfiguration({
         section: 'tailwindCSS',
-        scopeUri: uri,
-      }),
+        scopeUri: uri
+      })
     ])
     let config: Settings = { editor, tailwindCSS }
     documentSettingsCache.set(uri, config)
@@ -244,14 +243,16 @@ async function createProjectService(
       // TODO
       capabilities: {
         configuration: true,
-        diagnosticRelatedInformation: true,
+        diagnosticRelatedInformation: true
       },
       documents: documentService.documents,
       getConfiguration,
       getDocumentSymbols: (uri: string) => {
-        return connection.sendRequest('@/tailwindCSS/getDocumentSymbols', { uri })
-      },
-    },
+        return connection.sendRequest('@/tailwindCSS/getDocumentSymbols', {
+          uri
+        })
+      }
+    }
   }
 
   let registrations: Promise<BulkUnregistration>
@@ -272,7 +273,9 @@ async function createProjectService(
         }
       }
 
-      let isConfigFile = minimatch(file, `**/${CONFIG_FILE_GLOB}`, { dot: true })
+      let isConfigFile = minimatch(file, `**/${CONFIG_FILE_GLOB}`, {
+        dot: true
+      })
       let isPackageFile = minimatch(file, `**/${PACKAGE_GLOB}`, { dot: true })
       let isDependency = state.dependencies && state.dependencies.includes(change.file)
 
@@ -310,37 +313,37 @@ async function createProjectService(
       onFileEvents(
         changes.map(({ uri, type }) => ({
           file: URI.parse(uri).fsPath,
-          type,
+          type
         }))
       )
     })
 
     connection.client.register(DidChangeWatchedFilesNotification.type, {
-      watchers: [{ globPattern: `**/${CONFIG_FILE_GLOB}` }, { globPattern: `**/${PACKAGE_GLOB}` }],
+      watchers: [{ globPattern: `**/${CONFIG_FILE_GLOB}` }, { globPattern: `**/${PACKAGE_GLOB}` }]
     })
   } else if (parcel.getBinding()) {
     let typeMap = {
       create: FileChangeType.Created,
       update: FileChangeType.Changed,
-      delete: FileChangeType.Deleted,
+      delete: FileChangeType.Deleted
     }
 
     let subscription = await parcel.subscribe(
       folder,
       (err, events) => {
-        onFileEvents(events.map((event) => ({ file: event.path, type: typeMap[event.type] })))
+        onFileEvents(events.map(event => ({ file: event.path, type: typeMap[event.type] })))
       },
       {
-        ignore: ignore.map((ignorePattern) =>
+        ignore: ignore.map(ignorePattern =>
           path.resolve(folder, ignorePattern.replace(/^[*/]+/, '').replace(/[*/]+$/, ''))
-        ),
+        )
       }
     )
 
     disposables.push({
       dispose() {
         subscription.unsubscribe()
-      },
+      }
     })
   } else {
     let watch: typeof chokidar.watch = require('chokidar').watch
@@ -351,51 +354,51 @@ async function createProjectService(
       ignored: ignore,
       awaitWriteFinish: {
         stabilityThreshold: 100,
-        pollInterval: 20,
-      },
+        pollInterval: 20
+      }
     })
 
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       chokidarWatcher.on('ready', () => resolve())
     })
 
     chokidarWatcher
-      .on('add', (file) => onFileEvents([{ file, type: FileChangeType.Created }]))
-      .on('change', (file) => onFileEvents([{ file, type: FileChangeType.Changed }]))
-      .on('unlink', (file) => onFileEvents([{ file, type: FileChangeType.Deleted }]))
+      .on('add', file => onFileEvents([{ file, type: FileChangeType.Created }]))
+      .on('change', file => onFileEvents([{ file, type: FileChangeType.Changed }]))
+      .on('unlink', file => onFileEvents([{ file, type: FileChangeType.Deleted }]))
 
     disposables.push({
       dispose() {
         chokidarWatcher.close()
-      },
+      }
     })
   }
 
   function registerCapabilities(watchFiles: string[] = []): void {
     if (supportsDynamicRegistration(connection, params)) {
       if (registrations) {
-        registrations.then((r) => r.dispose())
+        registrations.then(r => r.dispose())
       }
 
       let capabilities = BulkRegistration.create()
 
       capabilities.add(HoverRequest.type, {
-        documentSelector: null,
+        documentSelector: null
       })
       capabilities.add(DocumentColorRequest.type, {
-        documentSelector: null,
+        documentSelector: null
       })
       capabilities.add(CodeActionRequest.type, {
-        documentSelector: null,
+        documentSelector: null
       })
       capabilities.add(CompletionRequest.type, {
         documentSelector: null,
         resolveProvider: true,
-        triggerCharacters: [...TRIGGER_CHARACTERS, state.separator].filter(Boolean),
+        triggerCharacters: [...TRIGGER_CHARACTERS, state.separator].filter(Boolean)
       })
       if (watchFiles.length > 0) {
         capabilities.add(DidChangeWatchedFilesNotification.type, {
-          watchers: watchFiles.map((file) => ({ globPattern: file })),
+          watchers: watchFiles.map(file => ({ globPattern: file }))
         })
       }
 
@@ -405,7 +408,7 @@ async function createProjectService(
 
   function resetState(): void {
     clearAllDiagnostics(state)
-    Object.keys(state).forEach((key) => {
+    Object.keys(state).forEach(key => {
       // Keep `dependencies` to ensure that they are still watched
       if (key !== 'editor' && key !== 'dependencies') {
         delete state[key]
@@ -434,12 +437,12 @@ async function createProjectService(
   }
 
   function clearRequireCache(): void {
-    Object.keys(__non_webpack_require__.cache).forEach((key) => {
+    Object.keys(__non_webpack_require__.cache).forEach(key => {
       if (!key.endsWith('.node')) {
         delete __non_webpack_require__.cache[key]
       }
     })
-    Object.keys((Module as any)._pathCache).forEach((key) => {
+    Object.keys((Module as any)._pathCache).forEach(key => {
       delete (Module as any)._pathCache[key]
     })
   }
@@ -455,7 +458,7 @@ async function createProjectService(
         absolute: true,
         suppressErrors: true,
         dot: true,
-        concurrency: Math.max(os.cpus().length, 1),
+        concurrency: Math.max(os.cpus().length, 1)
       })
     )
       .sort((a: string, b: string) => a.split('/').length - b.split('/').length)
@@ -466,7 +469,7 @@ async function createProjectService(
     }
 
     const pnpPath = findUp.sync(
-      (dir) => {
+      dir => {
         let pnpFile = path.join(dir, '.pnp.js')
         if (findUp.sync.exists(pnpFile)) {
           return pnpFile
@@ -517,7 +520,7 @@ async function createProjectService(
       tailwindcssVersion = __non_webpack_require__(tailwindcssPkgPath).version
 
       pluginVersions = Object.keys(tailwindPlugins)
-        .map((plugin) => {
+        .map(plugin => {
           try {
             return __non_webpack_require__(resolveFrom(configDir, `${plugin}/package.json`)).version
           } catch (_) {
@@ -556,7 +559,7 @@ async function createProjectService(
           const defaultConfig = __non_webpack_require__(
             resolveFrom(tailwindDir, './stubs/defaultConfig.stub.js')
           )
-          resolveConfigFn = (config) => resolveConfig([config, defaultConfig])
+          resolveConfigFn = config => resolveConfig([config, defaultConfig])
         } catch (_) {
           try {
             const resolveConfig = __non_webpack_require__(
@@ -565,7 +568,7 @@ async function createProjectService(
             const defaultConfig = __non_webpack_require__(
               resolveFrom(tailwindDir, './defaultConfig.js')
             )
-            resolveConfigFn = (config) => resolveConfig(config, defaultConfig())
+            resolveConfigFn = config => resolveConfig(config, defaultConfig())
           } catch (_) {
             throw Error('Failed to load resolveConfig function.')
           }
@@ -575,7 +578,9 @@ async function createProjectService(
       if (semver.gte(tailwindcssVersion, '1.4.0') && semver.lte(tailwindcssVersion, '1.99.0')) {
         const browserslistPath = resolveFrom(tailwindDir, 'browserslist')
         // TODO: set path to nearest dir with package.json?
-        browserslist = __non_webpack_require__(browserslistPath)(undefined, { path: folder })
+        browserslist = __non_webpack_require__(browserslistPath)(undefined, {
+          path: folder
+        })
       }
 
       if (semver.gte(tailwindcssVersion, '1.99.0')) {
@@ -607,14 +612,14 @@ async function createProjectService(
               resolveFrom(configDir, 'tailwindcss/lib/lib/setupContextUtils')
             ).createContext
             assert.strictEqual(typeof createContextFn, 'function')
-            return (state) => createContextFn(state.config)
+            return state => createContextFn(state.config)
           },
           () => {
             let createContextFn = __non_webpack_require__(
               resolveFrom(configDir, 'tailwindcss/lib/jit/lib/setupContextUtils')
             ).createContext
             assert.strictEqual(typeof createContextFn, 'function')
-            return (state) => createContextFn(state.config)
+            return state => createContextFn(state.config)
           },
           // TODO: the next two are canary releases only so can probably be removed
           () => {
@@ -622,7 +627,7 @@ async function createProjectService(
               resolveFrom(configDir, 'tailwindcss/lib/jit/lib/setupTrackingContext')
             ).default
             assert.strictEqual(typeof setupTrackingContext, 'function')
-            return (state) =>
+            return state =>
               setupTrackingContext(
                 state.configPath,
                 tailwindDirectives,
@@ -634,7 +639,7 @@ async function createProjectService(
               resolveFrom(configDir, 'tailwindcss/lib/jit/lib/setupContext')
             ).default
             assert.strictEqual(typeof setupContext, 'function')
-            return (state) => setupContext(state.configPath, tailwindDirectives)(result, root)
+            return state => setupContext(state.configPath, tailwindDirectives)(result, root)
           }
         )
 
@@ -648,10 +653,10 @@ async function createProjectService(
                 __non_webpack_require__(
                   resolveFrom(configDir, 'tailwindcss/lib/jit/lib/generateRules')
                 ).generateRules
-            ),
+            )
           },
           createContext: {
-            module: createContext,
+            module: createContext
           },
           expandApplyAtRules: {
             module: first(
@@ -663,8 +668,8 @@ async function createProjectService(
                 __non_webpack_require__(
                   resolveFrom(configDir, 'tailwindcss/lib/jit/lib/expandApplyAtRules')
                 ).default
-            ),
-          },
+            )
+          }
         }
       } catch (_) {
         try {
@@ -676,16 +681,16 @@ async function createProjectService(
             generateRules: {
               module: __non_webpack_require__(
                 resolveFrom(configDir, 'tailwindcss/jit/lib/generateRules')
-              ).generateRules,
+              ).generateRules
             },
             createContext: {
-              module: (state) => setupContext(state.configPath, tailwindDirectives)(result, root),
+              module: state => setupContext(state.configPath, tailwindDirectives)(result, root)
             },
             expandApplyAtRules: {
               module: __non_webpack_require__(
                 resolveFrom(configDir, 'tailwindcss/jit/lib/expandApplyAtRules')
-              ),
-            },
+              )
+            }
           }
         } catch (_) {}
       }
@@ -697,14 +702,16 @@ async function createProjectService(
       postcssVersion = require('postcss/package.json').version
       postcssSelectorParser = require('postcss-selector-parser')
       jitModules = {
-        generateRules: { module: require('tailwindcss/lib/lib/generateRules').generateRules },
+        generateRules: {
+          module: require('tailwindcss/lib/lib/generateRules').generateRules
+        },
         createContext: {
-          module: (state) =>
-            require('tailwindcss/lib/lib/setupContextUtils').createContext(state.config),
+          module: state =>
+            require('tailwindcss/lib/lib/setupContextUtils').createContext(state.config)
         },
         expandApplyAtRules: {
-          module: require('tailwindcss/lib/lib/expandApplyAtRules').default,
-        },
+          module: require('tailwindcss/lib/lib/expandApplyAtRules').default
+        }
       }
       console.log('Failed to load workspace modules.')
       console.log(`Using bundled version of \`tailwindcss\`: v${tailwindcssVersion}`)
@@ -717,7 +724,7 @@ async function createProjectService(
       postcss: { version: postcssVersion, module: postcss },
       postcssSelectorParser: { module: postcssSelectorParser },
       resolveConfig: { module: resolveConfigFn },
-      jit: jitModules,
+      jit: jitModules
     }
     state.browserslist = browserslist
     state.featureFlags = featureFlags
@@ -744,13 +751,13 @@ async function createProjectService(
 
         let fn = _applyComplexClasses(configClone, ...args)
 
-        return async (css) => {
-          css.walkRules((rule) => {
+        return async css => {
+          css.walkRules(rule => {
             const newSelector = rule.selector.replace(/__TWSEP__(.*?)__TWSEP__/g, '$1')
             if (newSelector !== rule.selector) {
               rule.before(
                 postcss.comment({
-                  text: '__ORIGINAL_SELECTOR__:' + rule.selector,
+                  text: '__ORIGINAL_SELECTOR__:' + rule.selector
                 })
               )
               rule.selector = newSelector
@@ -759,7 +766,7 @@ async function createProjectService(
 
           await fn(css)
 
-          css.walkComments((comment) => {
+          css.walkComments(comment => {
             if (comment.text.startsWith('__ORIGINAL_SELECTOR__:')) {
               comment.next().selector = comment.text.replace(/^__ORIGINAL_SELECTOR__:/, '')
               comment.remove()
@@ -809,7 +816,7 @@ async function createProjectService(
 
     let isV3 = semver.gte(tailwindcss.version, '2.99.0')
 
-    let hook = new Hook(fs.realpathSync(state.configPath), (exports) => {
+    let hook = new Hook(fs.realpathSync(state.configPath), exports => {
       originalConfig = klona(exports)
 
       let separator = dlv(exports, sepLocation)
@@ -848,7 +855,7 @@ async function createProjectService(
 
       // inject JIT `matchUtilities` function
       if (Array.isArray(exports.plugins)) {
-        exports.plugins = exports.plugins.map((plugin) => {
+        exports.plugins = exports.plugins.map(plugin => {
           if (plugin.__isOptionsFunction) {
             plugin = plugin()
           }
@@ -872,7 +879,7 @@ async function createProjectService(
                 }
                 return plugin.handler(...args)
               },
-              __intellisense_cache_bust: Math.random(),
+              __intellisense_cache_bust: Math.random()
             }
           }
           return plugin
@@ -903,8 +910,8 @@ async function createProjectService(
         if (state.jitContext.getClassList) {
           state.classList = state.jitContext
             .getClassList()
-            .filter((className) => className !== '*')
-            .map((className) => {
+            .filter(className => className !== '*')
+            .map(className => {
               return [className, { color: getColor(state, className) }]
             })
         }
@@ -923,24 +930,24 @@ async function createProjectService(
       hook.unhook()
     } else {
       try {
-        postcssResult = await postcss
+        postcssResult = (await postcss
           .module([
             // ...state.postcssPlugins.before.map((x) => x()),
-            tailwindcss.module(state.configPath),
+            tailwindcss.module(state.configPath)
             // ...state.postcssPlugins.after.map((x) => x()),
           ])
           .process(
             [
               semver.gte(tailwindcss.version, '0.99.0') ? 'base' : 'preflight',
               'components',
-              'utilities',
+              'utilities'
             ]
-              .map((x) => `/*__tw_intellisense_layer_${x}__*/\n@tailwind ${x};`)
+              .map(x => `/*__tw_intellisense_layer_${x}__*/\n@tailwind ${x};`)
               .join('\n'),
             {
-              from: undefined,
+              from: undefined
             }
-          )
+          )) as Result
       } catch (error) {
         throw error
       } finally {
@@ -958,7 +965,7 @@ async function createProjectService(
 
     state.plugins = await getPlugins(originalConfig)
     if (postcssResult) {
-      state.classNames = (await extractClassNames(postcssResult.root)) as ClassNames
+      state.classNames = (await extractClassNames(postcssResult.root as Root)) as ClassNames
     }
     state.variants = getVariants(state)
 
@@ -1049,7 +1056,7 @@ async function createProjectService(
         r: params.color.red,
         g: params.color.green,
         b: params.color.blue,
-        alpha: params.color.alpha,
+        alpha: params.color.alpha
       }
 
       let hexValue = culori.formatHex8(color)
@@ -1077,9 +1084,9 @@ async function createProjectService(
           .formatHsl(color)
           .replace(/ /g, '')
           // round numbers
-          .replace(/\d+\.\d+(%?)/g, (value, suffix) => `${Math.round(parseFloat(value))}${suffix}`),
-      ].map((value) => ({ label: `${prefix}-[${value}]` }))
-    },
+          .replace(/\d+\.\d+(%?)/g, (value, suffix) => `${Math.round(parseFloat(value))}${suffix}`)
+      ].map(value => ({ label: `${prefix}-[${value}]` }))
+    }
   }
 }
 
@@ -1110,18 +1117,18 @@ function runPlugin(
       addBase: () => {},
       matchUtilities: () => {},
       addVariant: () => {},
-      e: (x) => x,
-      prefix: (x) => x,
+      e: x => x,
+      prefix: x => x,
       theme: (path, defaultValue) => dlv(config, `theme.${path}`, defaultValue),
       variants: () => [],
       config: (path, defaultValue) => dlv(config, path, defaultValue),
-      corePlugins: (path) => {
+      corePlugins: path => {
         if (Array.isArray(config.corePlugins)) {
           return config.corePlugins.includes(path)
         }
         return dlv(config, `corePlugins.${path}`, true)
       },
-      target: (path) => {
+      target: path => {
         if (typeof config.target === 'string') {
           return config.target === 'browserslist' ? browserslistTarget : config.target
         }
@@ -1130,7 +1137,7 @@ function runPlugin(
         return target === 'browserslist' ? browserslistTarget : target
       },
       postcss,
-      ...apiOverrides,
+      ...apiOverrides
     })
   } catch (_) {}
 }
@@ -1162,12 +1169,12 @@ function getVariants(state: State): Record<string, string> {
           nodes: [
             state.modules.postcss.module.rule({
               selector: `.${escape(placeholder)}`,
-              nodes: [],
-            }),
-          ],
+              nodes: []
+            })
+          ]
         })
 
-        let classNameParser = state.modules.postcssSelectorParser.module((selectors) => {
+        let classNameParser = state.modules.postcssSelectorParser.module(selectors => {
           return selectors.first.filter(({ type }) => type === 'class').pop().value
         })
 
@@ -1176,17 +1183,17 @@ function getVariants(state: State): Record<string, string> {
         }
 
         function modifySelectors(modifierFunction) {
-          root.each((rule) => {
+          root.each(rule => {
             if (rule.type !== 'rule') {
               return
             }
 
-            rule.selectors = rule.selectors.map((selector) => {
+            rule.selectors = rule.selectors.map(selector => {
               return modifierFunction({
                 get className() {
                   return getClassNameFromSelector(selector)
                 },
-                selector,
+                selector
               })
             })
           })
@@ -1209,7 +1216,7 @@ function getVariants(state: State): Record<string, string> {
               if (isAtRule(rule)) {
                 definition = `@${rule.name} ${rule.params}`
               }
-            },
+            }
           })
 
           if (!definition) {
@@ -1221,7 +1228,7 @@ function getVariants(state: State): Record<string, string> {
             continue
           }
 
-          container.walkDecls((decl) => {
+          container.walkDecls(decl => {
             decl.remove()
           })
 
@@ -1261,11 +1268,11 @@ function getVariants(state: State): Record<string, string> {
 
   let plugins = Array.isArray(config.plugins) ? config.plugins : []
 
-  plugins.forEach((plugin) => {
+  plugins.forEach(plugin => {
     runPlugin(plugin, state, {
-      addVariant: (name) => {
+      addVariant: name => {
         variants.push(name)
-      },
+      }
     })
   })
 
@@ -1280,7 +1287,7 @@ async function getPlugins(config: any) {
   }
 
   return Promise.all(
-    plugins.map(async (plugin) => {
+    plugins.map(async plugin => {
       let pluginConfig = plugin.config
       if (!isObject(pluginConfig)) {
         pluginConfig = {}
@@ -1288,7 +1295,7 @@ async function getPlugins(config: any) {
 
       let contributes = {
         theme: isObject(pluginConfig.theme) ? Object.keys(pluginConfig.theme) : [],
-        variants: isObject(pluginConfig.variants) ? Object.keys(pluginConfig.variants) : [],
+        variants: isObject(pluginConfig.variants) ? Object.keys(pluginConfig.variants) : []
       }
 
       const fn = plugin.handler || plugin
@@ -1301,7 +1308,7 @@ async function getPlugins(config: any) {
         const trace = stackTrace.parse(e)
         if (trace.length === 0) {
           return {
-            name: fnName,
+            name: fnName
           }
         }
         const file = trace[0].fileName
@@ -1309,7 +1316,7 @@ async function getPlugins(config: any) {
         let pkgPath = pkgUp.sync({ cwd: dir })
         if (!pkgPath) {
           return {
-            name: fnName,
+            name: fnName
           }
         }
         let pkg: any
@@ -1317,19 +1324,19 @@ async function getPlugins(config: any) {
           pkg = __non_webpack_require__(pkg)
         } catch (_) {
           return {
-            name: fnName,
+            name: fnName
           }
         }
         if (pkg.name && path.resolve(dir, pkg.main || 'index.js') === file) {
           return {
             name: pkg.name,
             homepage: pkg.homepage,
-            contributes,
+            contributes
           }
         }
       }
       return {
-        name: fnName,
+        name: fnName
       }
     })
   )
@@ -1366,12 +1373,17 @@ class TW {
       false &&
       Array.isArray(this.initializeParams.workspaceFolders) &&
       this.initializeParams.capabilities.workspace?.workspaceFolders
-        ? this.initializeParams.workspaceFolders.map((el) => ({
+        ? this.initializeParams.workspaceFolders.map(el => ({
             name: el.name,
-            fsPath: getFileFsPath(el.uri),
+            fsPath: getFileFsPath(el.uri)
           }))
         : this.initializeParams.rootPath
-        ? [{ name: '', fsPath: normalizeFileNameToFsPath(this.initializeParams.rootPath) }]
+        ? [
+            {
+              name: '',
+              fsPath: normalizeFileNameToFsPath(this.initializeParams.rootPath)
+            }
+          ]
         : []
 
     if (workspaceFolders.length === 0) {
@@ -1380,7 +1392,7 @@ class TW {
     }
 
     await Promise.all(
-      workspaceFolders.map(async (folder) => {
+      workspaceFolders.map(async folder => {
         return this.addProject(folder.fsPath, this.initializeParams)
       })
     )
@@ -1397,7 +1409,7 @@ class TW {
       this.dispose()
     })
 
-    this.documentService.onDidChangeContent((change) => {
+    this.documentService.onDidChangeContent(change => {
       // TODO
       const project = Array.from(this.projects.values())[0]
       project?.provideDiagnostics(change.document)
@@ -1515,8 +1527,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
   if (supportsDynamicRegistration(connection, params)) {
     return {
       capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Full,
-      },
+        textDocumentSync: TextDocumentSyncKind.Full
+      }
     }
   }
 
@@ -1530,9 +1542,9 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
       codeActionProvider: true,
       completionProvider: {
         resolveProvider: true,
-        triggerCharacters: [...TRIGGER_CHARACTERS, ':'],
-      },
-    },
+        triggerCharacters: [...TRIGGER_CHARACTERS, ':']
+      }
+    }
   }
 })
 

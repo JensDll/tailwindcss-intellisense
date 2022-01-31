@@ -1,8 +1,9 @@
 import type { TextDocuments, Connection, Range, SymbolInformation } from 'vscode-languageserver'
-import type { TextDocument } from 'vscode-languageserver-textdocument'
-import type { Postcss } from 'postcss'
-import { KeywordColor } from './color'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import { Postcss } from 'postcss'
 import * as culori from 'culori'
+
+import { KeywordColor } from './color'
 
 export type ClassNamesTree = {
   [key: string]: ClassNamesTree

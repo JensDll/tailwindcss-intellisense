@@ -28,7 +28,7 @@ export const htmlLanguages = [
   'php',
   'razor',
   'slim',
-  'twig',
+  'twig'
 ]
 
 export const cssLanguages = ['css', 'less', 'postcss', 'sass', 'scss', 'stylus', 'sugarss']
@@ -39,7 +39,7 @@ export const jsLanguages = [
   'reason',
   'rescript',
   'typescript',
-  'typescriptreact',
+  'typescriptreact'
 ]
 
 export const specialLanguages = ['vue', 'svelte']

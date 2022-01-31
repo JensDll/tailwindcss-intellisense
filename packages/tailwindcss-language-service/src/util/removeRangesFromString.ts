@@ -1,16 +1,14 @@
-import { Range } from 'vscode-languageserver'
 import lineColumn from 'line-column'
+import { Range } from 'vscode-languageserver-textdocument'
+
 import { ensureArray } from './array'
 
-export function removeRangesFromString(
-  str: string,
-  rangeOrRanges: Range | Range[]
-): string {
+export function removeRangesFromString(str: string, rangeOrRanges: Range | Range[]): string {
   let ranges = ensureArray(rangeOrRanges)
   let finder = lineColumn(str + '\n', { origin: 0 })
   let indexRanges: { start: number; end: number }[] = []
 
-  ranges.forEach((range) => {
+  ranges.forEach(range => {
     let start = finder.toIndex(range.start.line, range.start.character)
     let end = finder.toIndex(range.end.line, range.end.character)
     for (let i = start - 1; i >= 0; i--) {
@@ -28,7 +26,7 @@ export function removeRangesFromString(
   let result = ''
   let i = 0
 
-  indexRanges.forEach((indexRange) => {
+  indexRanges.forEach(indexRange => {
     result += str.substring(i, indexRange.start)
     i = indexRange.end
   })

@@ -1,4 +1,4 @@
-import type { TextDocument, Range, Position } from 'vscode-languageserver'
+import { TextDocument, Range, Position } from 'vscode-languageserver-textdocument'
 
 export function isValidLocationForEmmetAbbreviation(
   document: TextDocument,
@@ -13,12 +13,12 @@ export function isValidLocationForEmmetAbbreviation(
   let textToBackTrack = document.getText({
     start: {
       line: start.line,
-      character: start.character,
+      character: start.character
     },
     end: {
       line: abbreviationRange.start.line,
-      character: abbreviationRange.start.character,
-    },
+      character: abbreviationRange.start.character
+    }
   })
 
   // Worse case scenario is when cursor is inside a big chunk of text which needs to backtracked

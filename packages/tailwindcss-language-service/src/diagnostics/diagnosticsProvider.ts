@@ -1,13 +1,17 @@
-import type { TextDocument } from 'vscode-languageserver'
-import { State } from '../util/state'
-import { DiagnosticKind, AugmentedDiagnostic } from './types'
-import { getCssConflictDiagnostics } from './getCssConflictDiagnostics'
-import { getInvalidApplyDiagnostics } from './getInvalidApplyDiagnostics'
-import { getInvalidScreenDiagnostics } from './getInvalidScreenDiagnostics'
-import { getInvalidVariantDiagnostics } from './getInvalidVariantDiagnostics'
-import { getInvalidConfigPathDiagnostics } from './getInvalidConfigPathDiagnostics'
-import { getInvalidTailwindDirectiveDiagnostics } from './getInvalidTailwindDirectiveDiagnostics'
-import { getRecommendedVariantOrderDiagnostics } from './getRecommendedVariantOrderDiagnostics'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+
+import { State } from '../util'
+import {
+  getCssConflictDiagnostics,
+  getInvalidApplyDiagnostics,
+  getInvalidScreenDiagnostics,
+  getInvalidVariantDiagnostics,
+  getInvalidConfigPathDiagnostics,
+  getInvalidTailwindDirectiveDiagnostics,
+  getRecommendedVariantOrderDiagnostics,
+  DiagnosticKind,
+  AugmentedDiagnostic
+} from './index'
 
 export async function doValidate(
   state: State,
@@ -19,7 +23,7 @@ export async function doValidate(
     DiagnosticKind.InvalidVariant,
     DiagnosticKind.InvalidConfigPath,
     DiagnosticKind.InvalidTailwindDirective,
-    DiagnosticKind.RecommendedVariantOrder,
+    DiagnosticKind.RecommendedVariantOrder
   ]
 ): Promise<AugmentedDiagnostic[]> {
   const settings = await state.editor.getConfiguration(document.uri)
@@ -46,7 +50,7 @@ export async function doValidate(
           : []),
         ...(only.includes(DiagnosticKind.RecommendedVariantOrder)
           ? await getRecommendedVariantOrderDiagnostics(state, document, settings)
-          : []),
+          : [])
       ]
     : []
 }
@@ -66,13 +70,13 @@ export function clearDiagnostics(state: State, document: TextDocument): void {
 }
 
 export function clearAllDiagnostics(state: State): void {
-  state.editor.documents.all().forEach((document) => {
+  state.editor.documents.all().forEach(document => {
     clearDiagnostics(state, document)
   })
 }
 
 export function updateAllDiagnostics(state: State): void {
-  state.editor.documents.all().forEach((document) => {
+  state.editor.documents.all().forEach(document => {
     provideDiagnostics(state, document)
   })
 }

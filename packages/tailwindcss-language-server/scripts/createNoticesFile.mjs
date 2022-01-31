@@ -12,7 +12,7 @@ const exclude = [
   'prettier',
   'terser',
   'typescript',
-  'license-checker',
+  'license-checker'
 ]
 
 function isExcluded(name) {

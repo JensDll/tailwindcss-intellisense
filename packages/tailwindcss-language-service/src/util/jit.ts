@@ -1,6 +1,7 @@
-import { State } from './state'
-import type { Container, Document, Root, Rule } from 'postcss'
 import dlv from 'dlv'
+import { Container, Document, Root, Rule } from 'postcss'
+
+import { State } from './state'
 import { remToPx } from './remToPx'
 
 export function bigSign(bigIntValue) {
@@ -13,17 +14,19 @@ export function generateRules(state: State, classNames: string[]): { root: Root;
     .module(new Set(classNames), state.jitContext)
     .sort(([a], [z]) => bigSign(a - z))
 
-  let root = state.modules.postcss.module.root({ nodes: rules.map(([, rule]) => rule) })
+  let root = state.modules.postcss.module.root({
+    nodes: rules.map(([, rule]) => rule)
+  })
   state.modules.jit.expandApplyAtRules.module(state.jitContext)(root)
 
   let actualRules: Rule[] = []
-  root.walkRules((subRule) => {
+  root.walkRules(subRule => {
     actualRules.push(subRule)
   })
 
   return {
     root,
-    rules: actualRules,
+    rules: actualRules
   }
 }
 
@@ -35,12 +38,12 @@ export async function stringifyRoot(state: State, root: Root, uri?: string): Pro
 
   let clone = root.clone()
 
-  clone.walkAtRules('defaults', (node) => {
+  clone.walkAtRules('defaults', node => {
     node.remove()
   })
 
   if (showPixelEquivalents) {
-    clone.walkDecls((decl) => {
+    clone.walkDecls(decl => {
       let px = remToPx(decl.value, rootFontSize)
       if (px) {
         decl.value = `${decl.value}/* ${px} */`
@@ -56,7 +59,7 @@ export async function stringifyRoot(state: State, root: Root, uri?: string): Pro
 
 export function stringifyRules(state: State, rules: Rule[], tabSize: number = 2): string {
   return rules
-    .map((rule) => rule.toString().replace(/([^}{;])$/gm, '$1;'))
+    .map(rule => rule.toString().replace(/([^}{;])$/gm, '$1;'))
     .join('\n\n')
     .replace(/^(?:    )+/gm, (indent: string) => ' '.repeat((indent.length / 4) * tabSize))
 }
@@ -75,8 +78,8 @@ export async function stringifyDecls(state: State, rule: Rule, uri?: string): Pr
 }
 
 function replaceClassName(state: State, selector: string, find: string, replace: string): string {
-  const transform = (selectors) => {
-    selectors.walkClasses((className) => {
+  const transform = selectors => {
+    selectors.walkClasses(className => {
       if (className.value === find) {
         className.value = replace
       }

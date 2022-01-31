@@ -27,7 +27,7 @@ export function showError(
   console.error(formatError(message, err))
   if (!(err instanceof SilentError)) {
     connection.sendNotification('@/tailwindCSS/error', {
-      message: formatError(message, err, false),
+      message: formatError(message, err, false)
     })
   }
 }

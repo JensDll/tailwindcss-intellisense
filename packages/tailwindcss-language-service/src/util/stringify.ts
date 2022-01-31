@@ -1,24 +1,28 @@
-import removeMeta from './removeMeta'
-const dlv = require('dlv')
+import dlv from 'dlv'
 import escapeClassName from 'css.escape'
+
+import { removeMeta } from './removeMeta'
 import { ensureArray } from './array'
 import { remToPx } from './remToPx'
-import stringifyObject from 'stringify-object'
-import isObject from './isObject'
+import { isObject } from './isObject'
 
 export function stringifyConfigValue(x: any): string {
   if (isObject(x)) return `${Object.keys(x).length} values`
   if (typeof x === 'function') return 'ƒ'
-  return stringifyObject(x, {
-    inlineCharacterLimit: Infinity,
-    singleQuotes: false,
-    transform: (obj, prop, originalResult) => {
-      if (typeof obj[prop] === 'function') {
-        return 'ƒ'
+  return JSON.stringify(
+    x,
+    (key, value) => {
+      if (value === undefined) {
+        return 'undefined'
       }
-      return originalResult
+      if (typeof value === 'function') {
+        return 'f'
+      }
+
+      return value
     },
-  })
+    2
+  )
 }
 
 export function stringifyCss(
@@ -27,7 +31,7 @@ export function stringifyCss(
   {
     tabSize = 2,
     showPixelEquivalents = false,
-    rootFontSize = 16,
+    rootFontSize = 16
   }: Partial<{
     tabSize: number
     showPixelEquivalents: boolean
@@ -38,11 +42,11 @@ export function stringifyCss(
 
   if (Array.isArray(obj)) {
     const rules = obj
-      .map((x) =>
+      .map(x =>
         stringifyCss(className, x, {
           tabSize,
           showPixelEquivalents,
-          rootFontSize,
+          rootFontSize
         })
       )
       .filter(Boolean)
@@ -64,7 +68,7 @@ export function stringifyCss(
   const indentStr = indent.repeat(context.length)
   const decls = props.reduce((acc, curr, i) => {
     const propStr = ensureArray(obj[curr])
-      .map((val) => {
+      .map(val => {
         const px = showPixelEquivalents ? remToPx(val, rootFontSize) : undefined
         return `${indentStr + indent}${curr}: ${val}${px ? `/* ${px} */` : ''};`
       })

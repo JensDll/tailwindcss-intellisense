@@ -1,13 +1,17 @@
-import { State } from './util/state'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import { ColorInformation } from 'vscode-languageserver'
+import dlv from 'dlv'
+
 import {
   findClassListsInDocument,
   getClassNamesInClassList,
   findHelperFunctionsInDocument,
-} from './util/find'
-import { getColor, getColorFromValue, culoriColorToVscodeColor } from './util/color'
-import { stringToPath } from './util/stringToPath'
-import type { TextDocument, ColorInformation } from 'vscode-languageserver'
-import dlv from 'dlv'
+  getColor,
+  getColorFromValue,
+  culoriColorToVscodeColor,
+  stringToPath,
+  State
+} from './util'
 
 export async function getDocumentColors(
   state: State,
@@ -20,28 +24,31 @@ export async function getDocumentColors(
   if (settings.tailwindCSS.colorDecorators === false) return colors
 
   let classLists = await findClassListsInDocument(state, document)
-  classLists.forEach((classList) => {
+  classLists.forEach(classList => {
     let classNames = getClassNamesInClassList(classList)
-    classNames.forEach((className) => {
+    classNames.forEach(className => {
       let color = getColor(state, className.className)
       if (color === null || typeof color === 'string' || (color.alpha ?? 1) === 0) {
         return
       }
       colors.push({
         range: className.range,
-        color: culoriColorToVscodeColor(color),
+        color: culoriColorToVscodeColor(color)
       })
     })
   })
 
   let helperFns = findHelperFunctionsInDocument(state, document)
-  helperFns.forEach((fn) => {
+  helperFns.forEach(fn => {
     let keys = stringToPath(fn.value)
     let base = fn.helper === 'theme' ? ['theme'] : []
     let value = dlv(state.config, [...base, ...keys])
     let color = getColorFromValue(value)
     if (color && typeof color !== 'string' && (color.alpha ?? 1) !== 0) {
-      colors.push({ range: fn.valueRange, color: culoriColorToVscodeColor(color) })
+      colors.push({
+        range: fn.valueRange,
+        color: culoriColorToVscodeColor(color)
+      })
     }
   })
 

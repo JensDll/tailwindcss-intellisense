@@ -1,12 +1,9 @@
-const dlv = require('dlv')
-import { State } from './state'
-import removeMeta from './removeMeta'
-import { ensureArray, dedupe, flatten } from './array'
-import type { Color } from 'vscode-languageserver'
-import { getClassNameParts } from './getClassNameAtPosition'
-import * as jit from './jit'
+import dlv from 'dlv'
+import { Color } from 'vscode-languageserver'
 import * as culori from 'culori'
 import namedColors from 'color-name'
+
+import { jit, getClassNameParts, ensureArray, dedupe, removeMeta, State } from './index'
 
 const COLOR_PROPS = [
   'accent-color',
@@ -23,7 +20,7 @@ const COLOR_PROPS = [
   'outline-color',
   'stop-color',
   'stroke',
-  'text-decoration-color',
+  'text-decoration-color'
 ]
 
 export type KeywordColor = 'transparent' | 'currentColor'
@@ -51,7 +48,7 @@ const colorRegex = new RegExp(
 function getColorsInString(str: string): (culori.Color | KeywordColor)[] {
   if (/(?:box|drop)-shadow/.test(str)) return []
 
-  return Array.from(str.matchAll(colorRegex), (match) => {
+  return Array.from(str.matchAll(colorRegex), match => {
     let color = match[1].replace(/var\([^)]+\)/, '1')
     return getKeywordColor(color) ?? culori.parse(color)
   }).filter(Boolean)
@@ -60,7 +57,7 @@ function getColorsInString(str: string): (culori.Color | KeywordColor)[] {
 function getColorFromDecls(
   decls: Record<string, string | string[]>
 ): culori.Color | KeywordColor | null {
-  let props = Object.keys(decls).filter((prop) => {
+  let props = Object.keys(decls).filter(prop => {
     // ignore content: "";
     if (
       prop === 'content' &&
@@ -73,18 +70,18 @@ function getColorFromDecls(
 
   if (props.length === 0) return null
 
-  const nonCustomProps = props.filter((prop) => !prop.startsWith('--'))
+  const nonCustomProps = props.filter(prop => !prop.startsWith('--'))
 
   const areAllCustom = nonCustomProps.length === 0
 
-  if (!areAllCustom && nonCustomProps.some((prop) => !COLOR_PROPS.includes(prop))) {
+  if (!areAllCustom && nonCustomProps.some(prop => !COLOR_PROPS.includes(prop))) {
     // they should all be color-based props
     return null
   }
 
   const propsToCheck = areAllCustom ? props : nonCustomProps
 
-  const colors = propsToCheck.flatMap((prop) => ensureArray(decls[prop]).flatMap(getColorsInString))
+  const colors = propsToCheck.flatMap(prop => ensureArray(decls[prop]).flatMap(getColorsInString))
 
   // check that all of the values are valid colors
   // if (colors.some((color) => color instanceof TinyColor && !color.isValid)) {
@@ -93,7 +90,7 @@ function getColorFromDecls(
 
   // check that all of the values are the same color, ignoring alpha
   const colorStrings = dedupe(
-    colors.map((color) =>
+    colors.map(color =>
       typeof color === 'string' ? color : culori.formatRgb({ ...color, alpha: undefined })
     )
   )
@@ -110,14 +107,14 @@ function getColorFromDecls(
     (color): color is culori.Color => typeof color !== 'string'
   )
 
-  const alphas = dedupe(nonKeywordColors.map((color) => color.alpha ?? 1))
+  const alphas = dedupe(nonKeywordColors.map(color => color.alpha ?? 1))
 
   if (alphas.length === 1) {
     return nonKeywordColors[0]
   }
 
   if (alphas.length === 2 && alphas.includes(0)) {
-    return nonKeywordColors.find((color) => (color.alpha ?? 1) !== 0)
+    return nonKeywordColors.find(color => (color.alpha ?? 1) !== 0)
   }
 
   return null
@@ -136,7 +133,7 @@ export function getColor(state: State, className: string): culori.Color | Keywor
     if (rules.length === 0) return null
 
     let decls: Record<string, string | string[]> = {}
-    root.walkDecls((decl) => {
+    root.walkDecls(decl => {
       let value = decls[decl.prop]
       if (value) {
         if (Array.isArray(value)) {

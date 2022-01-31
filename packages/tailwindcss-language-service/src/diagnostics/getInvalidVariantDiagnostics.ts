@@ -1,12 +1,17 @@
-import { State, Settings } from '../util/state'
-import type { TextDocument, Range, DiagnosticSeverity } from 'vscode-languageserver'
-import { InvalidVariantDiagnostic, DiagnosticKind } from './types'
-import { isCssDoc } from '../util/css'
-import { getLanguageBoundaries } from '../util/getLanguageBoundaries'
-import { findAll, indexToPosition } from '../util/find'
-import { closest } from '../util/closest'
-import { absoluteRange } from '../util/absoluteRange'
 import semver from 'semver'
+import { TextDocument, Range } from 'vscode-languageserver-textdocument'
+
+import { InvalidVariantDiagnostic, DiagnosticKind } from './types'
+import {
+  isCssDoc,
+  getLanguageBoundaries,
+  findAll,
+  indexToPosition,
+  closest,
+  absoluteRange,
+  State,
+  Settings
+} from '../util'
 
 export function getInvalidVariantDiagnostics(
   state: State,
@@ -34,14 +39,14 @@ export function getInvalidVariantDiagnostics(
   let possibleVariants = Object.keys(state.variants)
   if (state.jit) {
     possibleVariants.unshift('responsive')
-    possibleVariants = possibleVariants.filter((v) => !state.screens.includes(v))
+    possibleVariants = possibleVariants.filter(v => !state.screens.includes(v))
   }
 
-  ranges.forEach((range) => {
+  ranges.forEach(range => {
     let text = document.getText(range)
     let matches = findAll(/(?:\s|^)@variants\s+(?<variants>[^{]+)/g, text)
 
-    matches.forEach((match) => {
+    matches.forEach(match => {
       let variants = match.groups.variants.split(/(\s*,\s*)/)
       let listStartIndex = match.index + match[0].length - match.groups.variants.length
 
@@ -67,7 +72,7 @@ export function getInvalidVariantDiagnostics(
           range: absoluteRange(
             {
               start: indexToPosition(text, variantStartIndex),
-              end: indexToPosition(text, variantStartIndex + variant.length),
+              end: indexToPosition(text, variantStartIndex + variant.length)
             },
             range
           ),
@@ -76,7 +81,7 @@ export function getInvalidVariantDiagnostics(
               ? 1 /* DiagnosticSeverity.Error */
               : 2 /* DiagnosticSeverity.Warning */,
           message,
-          suggestions,
+          suggestions
         })
       }
     })

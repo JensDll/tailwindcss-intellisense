@@ -14,21 +14,21 @@ const uv = (process.versions.uv || '').split('.')[0]
 const prebuilds = {
   'darwin-arm64': {
     'node.napi.glibc.node': () =>
-      require('@parcel/watcher/prebuilds/darwin-arm64/node.napi.glibc.node'),
+      require('@parcel/watcher/prebuilds/darwin-arm64/node.napi.glibc.node')
   },
   'darwin-x64': {
     'node.napi.glibc.node': () =>
-      require('@parcel/watcher/prebuilds/darwin-x64/node.napi.glibc.node'),
+      require('@parcel/watcher/prebuilds/darwin-x64/node.napi.glibc.node')
   },
   'linux-x64': {
     'node.napi.glibc.node': () =>
       require('@parcel/watcher/prebuilds/linux-x64/node.napi.glibc.node'),
-    'node.napi.musl.node': () => require('@parcel/watcher/prebuilds/linux-x64/node.napi.musl.node'),
+    'node.napi.musl.node': () => require('@parcel/watcher/prebuilds/linux-x64/node.napi.musl.node')
   },
   'win32-x64': {
     'node.napi.glibc.node': () =>
-      require('@parcel/watcher/prebuilds/win32-x64/node.napi.glibc.node'),
-  },
+      require('@parcel/watcher/prebuilds/win32-x64/node.napi.glibc.node')
+  }
 }
 
 let getBinding = () => {
@@ -63,7 +63,7 @@ exports.subscribe = async (dir, fn, opts) => {
   return {
     unsubscribe() {
       return getBinding().unsubscribe(dir, fn, opts)
-    },
+    }
   }
 }
 
@@ -185,7 +185,7 @@ function compareTags(runtime) {
 function normalizeOptions(dir, opts = {}) {
   if (Array.isArray(opts.ignore)) {
     opts = Object.assign({}, opts, {
-      ignore: opts.ignore.map((ignore) => path.resolve(dir, ignore)),
+      ignore: opts.ignore.map(ignore => path.resolve(dir, ignore))
     })
   }
 

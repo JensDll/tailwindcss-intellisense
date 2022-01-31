@@ -1,6 +1,6 @@
-import isObject from './isObject'
+import { isObject } from './isObject'
 
-export default function removeMeta(obj: any): any {
+export function removeMeta(obj: any): any {
   let result = {}
   for (let key in obj) {
     if (key.substr(0, 2) === '__') continue

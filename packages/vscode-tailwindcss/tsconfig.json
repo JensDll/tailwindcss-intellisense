@@ -1,23 +1,11 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "lib": ["ES2020"],
-    "rootDir": "..",
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowJs": true,
-    "resolveJsonModule": true,
-    "baseUrl": "..",
-    "paths": {
-      "tailwindcss-language-service/*": ["../packages/tailwindcss-language-service/*"],
-      "tailwindcss-language-server/*": ["../packages/tailwindcss-language-server/*"]
-    }
+    "composite": true,
+    "rootDir": "./src",
+    "module": "ESNext",
+    "target": "ES2019",
+    "lib": ["ESNext"]
   },
-  "include": [
-    "src",
-    "../packages/tailwindcss-language-service",
-    "../packages/tailwindcss-language-server"
-  ]
+  "include": ["src"]
 }

@@ -1,4 +1,4 @@
-import { Range } from 'vscode-languageserver'
+import { Range } from 'vscode-languageserver-textdocument'
 
 export function rangesEqual(a: Range, b: Range): boolean {
   return (

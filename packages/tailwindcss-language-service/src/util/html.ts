@@ -1,9 +1,10 @@
-import type { TextDocument, Position } from 'vscode-languageserver'
+import { TextDocument, Position } from 'vscode-languageserver-textdocument'
+
 import { State } from './state'
 import { htmlLanguages } from './languages'
 
 export function isHtmlDoc(state: State, doc: TextDocument): boolean {
-  const userHtmlLanguages = Object.keys(state.editor.userLanguages).filter((lang) =>
+  const userHtmlLanguages = Object.keys(state.editor.userLanguages).filter(lang =>
     htmlLanguages.includes(state.editor.userLanguages[lang])
   )
 
@@ -21,7 +22,7 @@ export function isSvelteDoc(doc: TextDocument): boolean {
 export function isHtmlContext(state: State, doc: TextDocument, position: Position): boolean {
   let str = doc.getText({
     start: { line: 0, character: 0 },
-    end: position,
+    end: position
   })
 
   if (isHtmlDoc(state, doc) && !isInsideTag(str, ['script', 'style'])) {

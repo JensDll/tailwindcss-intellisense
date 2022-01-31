@@ -1,5 +1,6 @@
-import type { Diagnostic } from 'vscode-languageserver'
-import { DocumentClassName, DocumentClassList } from '../util/state'
+import { Diagnostic } from 'vscode-languageserver'
+
+import { DocumentClassName } from '../util/state'
 
 export enum DiagnosticKind {
   CssConflict = 'cssConflict',
@@ -8,7 +9,7 @@ export enum DiagnosticKind {
   InvalidVariant = 'invalidVariant',
   InvalidConfigPath = 'invalidConfigPath',
   InvalidTailwindDirective = 'invalidTailwindDirective',
-  RecommendedVariantOrder = 'recommendedVariantOrder',
+  RecommendedVariantOrder = 'recommendedVariantOrder'
 }
 
 export type CssConflictDiagnostic = Diagnostic & {

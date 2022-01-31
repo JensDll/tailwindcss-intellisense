@@ -1,7 +1,9 @@
-import minimatch from 'minimatch'
-import * as path from 'path'
-import { State } from 'tailwindcss-language-service/src/util/state'
+import path from 'path'
+
 import { TextDocument } from 'vscode-languageserver-textdocument'
+import minimatch from 'minimatch'
+
+import { State } from '@tailwindcss/language-service'
 import { getFileFsPath } from './uri'
 
 export const DEFAULT_FILES_EXCLUDE = ['**/.git/**', '**/.svn/**', '**/.hg/**', '**/node_modules/**']

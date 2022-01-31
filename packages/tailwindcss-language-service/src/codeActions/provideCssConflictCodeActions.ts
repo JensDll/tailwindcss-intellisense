@@ -1,11 +1,7 @@
-import { State } from '../util/state'
-import type {
-  CodeActionParams,
-  CodeAction,
-} from 'vscode-languageserver'
-import { CssConflictDiagnostic } from '../diagnostics/types'
-import { joinWithAnd } from '../util/joinWithAnd'
-import { removeRangesFromString } from '../util/removeRangesFromString'
+import { CodeActionParams, CodeAction } from 'vscode-languageserver'
+
+import { CssConflictDiagnostic } from '../diagnostics'
+import { joinWithAnd, removeRangesFromString, State } from '../util'
 
 export async function provideCssConflictCodeActions(
   _state: State,
@@ -15,9 +11,7 @@ export async function provideCssConflictCodeActions(
   return [
     {
       title: `Delete ${joinWithAnd(
-        diagnostic.otherClassNames.map(
-          (otherClassName) => `'${otherClassName.className}'`
-        )
+        diagnostic.otherClassNames.map(otherClassName => `'${otherClassName.className}'`)
       )}`,
       kind: 'quickfix', // CodeActionKind.QuickFix,
       diagnostics: [diagnostic],
@@ -28,14 +22,12 @@ export async function provideCssConflictCodeActions(
               range: diagnostic.className.classList.range,
               newText: removeRangesFromString(
                 diagnostic.className.classList.classList,
-                diagnostic.otherClassNames.map(
-                  (otherClassName) => otherClassName.relativeRange
-                )
-              ),
-            },
-          ],
-        },
-      },
-    },
+                diagnostic.otherClassNames.map(otherClassName => otherClassName.relativeRange)
+              )
+            }
+          ]
+        }
+      }
+    }
   ]
 }

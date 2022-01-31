@@ -1,22 +1,24 @@
 import type { CodeAction, CodeActionParams, TextEdit, Range } from 'vscode-languageserver'
-import { State } from '../util/state'
-import { InvalidApplyDiagnostic } from '../diagnostics/types'
-import { isCssDoc } from '../util/css'
-import { getLanguageBoundaries } from '../util/getLanguageBoundaries'
-import { getClassNameMeta } from '../util/getClassNameMeta'
-import { getClassNameParts } from '../util/getClassNameAtPosition'
-import { validateApply } from '../util/validateApply'
-import { isWithinRange } from '../util/isWithinRange'
-const dlv = require('dlv')
-import type { Root, Source } from 'postcss'
-import { absoluteRange } from '../util/absoluteRange'
-import { removeRangesFromString } from '../util/removeRangesFromString'
-import detectIndent from 'detect-indent'
-import isObject from '../util/isObject'
-import { cssObjToAst } from '../util/cssObjToAst'
-import dset from 'dset'
+import { Root, Source } from 'postcss'
 import selectorParser from 'postcss-selector-parser'
-import { flatten } from '../util/array'
+import dlv from 'dlv'
+import { dset } from 'dset'
+import detectIndent from 'detect-indent'
+
+import { InvalidApplyDiagnostic } from '../diagnostics'
+import {
+  isCssDoc,
+  cssObjToAst,
+  getLanguageBoundaries,
+  getClassNameMeta,
+  getClassNameParts,
+  validateApply,
+  isWithinRange,
+  absoluteRange,
+  removeRangesFromString,
+  flatten,
+  State
+} from '../util'
 
 export async function provideInvalidApplyCodeActions(
   state: State,
@@ -43,7 +45,7 @@ export async function provideInvalidApplyCodeActions(
   if (!isCssDoc(state, document)) {
     let languageBoundaries = getLanguageBoundaries(state, document)
     if (!languageBoundaries) return []
-    cssRange = languageBoundaries.css.find((range) => isWithinRange(diagnostic.range.start, range))
+    cssRange = languageBoundaries.css.find(range => isWithinRange(diagnostic.range.start, range))
     if (!cssRange) return []
     cssText = document.getText(cssRange)
   }
@@ -55,10 +57,10 @@ export async function provideInvalidApplyCodeActions(
         // @ts-ignore
         postcss.module.plugin('', (_options = {}) => {
           return (root: Root) => {
-            root.walkRules((rule) => {
+            root.walkRules(rule => {
               if (changes.length) return false
 
-              rule.walkAtRules('apply', (atRule) => {
+              rule.walkAtRules('apply', atRule => {
                 let atRuleRange = postcssSourceToRange(atRule.source)
                 if (cssRange) {
                   atRuleRange = absoluteRange(atRuleRange, cssRange)
@@ -87,7 +89,7 @@ export async function provideInvalidApplyCodeActions(
                     newText: removeRangesFromString(
                       diagnostic.className.classList.classList,
                       diagnostic.className.relativeRange
-                    ),
+                    )
                   })
                 }
 
@@ -113,7 +115,7 @@ export async function provideInvalidApplyCodeActions(
                         if (typeof outputIndent === 'undefined') outputIndent = m
                         return m.replace(new RegExp(outputIndent, 'g'), documentIndent.indent)
                       })
-                      .replace(/^(\s+)(.*?[^{}]\n)([^\s}])/gm, '$1$2$1$3'),
+                      .replace(/^(\s+)(.*?[^{}]\n)([^\s}])/gm, '$1$2$1$3')
                 })
 
                 return false
@@ -122,7 +124,7 @@ export async function provideInvalidApplyCodeActions(
               return undefined // true
             })
           }
-        }),
+        })
       ])
       .process(cssText, { from: undefined })
   } catch (_) {
@@ -140,10 +142,10 @@ export async function provideInvalidApplyCodeActions(
       diagnostics: [diagnostic],
       edit: {
         changes: {
-          [params.textDocument.uri]: changes,
-        },
-      },
-    },
+          [params.textDocument.uri]: changes
+        }
+      }
+    }
   ]
 }
 
@@ -151,12 +153,12 @@ function postcssSourceToRange(source: Source): Range {
   return {
     start: {
       line: source.start.line - 1,
-      character: source.start.column - 1,
+      character: source.start.column - 1
     },
     end: {
       line: source.end.line - 1,
-      character: source.end.column,
-    },
+      character: source.end.column
+    }
   }
 }
 
@@ -184,7 +186,7 @@ function classNameToAst(
     if (!common) return null
     if (state.screens.includes(part)) {
       path.push(`@screen ${part}`)
-      context = context.filter((con) => !common.includes(con))
+      context = context.filter(con => !common.includes(con))
     }
   }
 
@@ -200,8 +202,8 @@ function classNameToAst(
 
   let rule = {
     [selector]: {
-      [`@apply ${baseClassName}${important ? ' !important' : ''}`]: '',
-    },
+      [`@apply ${baseClassName}${important ? ' !important' : ''}`]: ''
+    }
   }
   if (path.length) {
     dset(obj, path, rule)
@@ -217,8 +219,8 @@ function appendPseudosToSelector(selector: string, pseudos: string[]): string | 
 
   let canTransform = true
 
-  let transformedSelector = selectorParser((selectors) => {
-    flatten(selectors.split((_) => true)).forEach((sel) => {
+  let transformedSelector = selectorParser(selectors => {
+    flatten(selectors.split(_ => true)).forEach(sel => {
       // @ts-ignore
       for (let i = sel.nodes.length - 1; i >= 0; i--) {
         // @ts-ignore
@@ -231,7 +233,7 @@ function appendPseudosToSelector(selector: string, pseudos: string[]): string | 
         }
       }
       if (canTransform) {
-        pseudos.forEach((p) => {
+        pseudos.forEach(p => {
           // @ts-ignore
           sel.append(selectorParser.pseudo({ value: p }))
         })

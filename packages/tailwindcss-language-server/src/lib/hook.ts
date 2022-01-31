@@ -10,7 +10,7 @@ let bundledModules = {
   'tailwindcss/defaultConfig': require('tailwindcss/defaultConfig'),
   'tailwindcss/defaultTheme': require('tailwindcss/defaultTheme'),
   'tailwindcss/resolveConfig': require('tailwindcss/resolveConfig'),
-  'tailwindcss/plugin': require('tailwindcss/plugin'),
+  'tailwindcss/plugin': require('tailwindcss/plugin')
 }
 
 export default class Hook {
@@ -20,7 +20,7 @@ export default class Hook {
   private _origRequire = Module.prototype.require
   private _require: (req: string) => any
 
-  constructor(find: string, callback: (x) => {}) {
+  constructor(find: string, callback: (exports: any) => {}) {
     // @ts-ignore
     if (typeof Module._resolveFilename !== 'function') {
       throw new Error(

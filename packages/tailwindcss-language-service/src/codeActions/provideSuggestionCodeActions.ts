@@ -1,12 +1,13 @@
-import { State } from '../util/state'
-import type { CodeActionParams, CodeAction } from 'vscode-languageserver'
+import { CodeActionParams, CodeAction } from 'vscode-languageserver'
+
 import {
   InvalidConfigPathDiagnostic,
   InvalidTailwindDirectiveDiagnostic,
   InvalidScreenDiagnostic,
   InvalidVariantDiagnostic,
-  RecommendedVariantOrderDiagnostic,
-} from '../diagnostics/types'
+  RecommendedVariantOrderDiagnostic
+} from '../diagnostics'
+import { State } from '../util'
 
 export function provideSuggestionCodeActions(
   _state: State,
@@ -18,7 +19,7 @@ export function provideSuggestionCodeActions(
     | InvalidVariantDiagnostic
     | RecommendedVariantOrderDiagnostic
 ): CodeAction[] {
-  return diagnostic.suggestions.map((suggestion) => ({
+  return diagnostic.suggestions.map(suggestion => ({
     title: `Replace with '${suggestion}'`,
     kind: 'quickfix', // CodeActionKind.QuickFix,
     diagnostics: [diagnostic],
@@ -27,10 +28,10 @@ export function provideSuggestionCodeActions(
         [params.textDocument.uri]: [
           {
             range: diagnostic.range,
-            newText: suggestion,
-          },
-        ],
-      },
-    },
+            newText: suggestion
+          }
+        ]
+      }
+    }
   }))
 }

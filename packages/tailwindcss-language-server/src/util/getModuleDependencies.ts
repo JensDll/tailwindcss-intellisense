@@ -1,12 +1,13 @@
 import fs from 'fs'
 import path from 'path'
+
 import resolve from 'resolve'
 import detective from 'detective'
 
 export function getModuleDependencies(modulePath: string): string[] {
   return _getModuleDependencies(modulePath)
     .map(({ file }) => file)
-    .filter((file) => file !== modulePath)
+    .filter(file => file !== modulePath)
 }
 
 function createModule(file) {
@@ -24,11 +25,11 @@ function _getModuleDependencies(entryFile) {
   // ones are being added
   for (const mdl of modules) {
     mdl.requires
-      .filter((dep) => {
+      .filter(dep => {
         // Only track local modules, not node_modules
         return dep.startsWith('./') || dep.startsWith('../')
       })
-      .forEach((dep) => {
+      .forEach(dep => {
         try {
           const basedir = path.dirname(mdl.file)
           const depPath = resolve.sync(dep, { basedir })

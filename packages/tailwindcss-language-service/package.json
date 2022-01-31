@@ -1,43 +1,29 @@
 {
-  "name": "tailwindcss-language-service",
+  "name": "@tailwindcss/language-service",
   "version": "0.0.23",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "@types/moo": "0.5.3",
-    "color-name": "1.1.4",
-    "css.escape": "1.5.1",
-    "culori": "0.20.1",
-    "detect-indent": "6.0.0",
-    "dlv": "1.1.3",
-    "dset": "2.0.1",
-    "line-column": "1.0.2",
-    "moo": "0.5.1",
-    "multi-regexp2": "1.0.3",
-    "postcss": "8.3.9",
-    "postcss-selector-parser": "6.0.2",
-    "semver": "7.3.2",
-    "sift-string": "0.0.2",
-    "stringify-object": "3.3.0",
-    "vscode-emmet-helper-bundled": "0.0.1",
-    "vscode-languageclient": "7.0.0",
-    "vscode-languageserver": "7.0.0",
-    "vscode-languageserver-textdocument": "1.0.1"
+    "build": "ncc build src/index.ts --minify",
+    "dev": "ncc build src/index.ts --source-map --no-source-map-register --watch",
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
-    "prettier": "2.3.0",
-    "tsdx": "0.14.1",
-    "tslib": "2.2.0",
-    "typescript": "4.2.4"
+    "@vscode/emmet-helper": "^2.8.3",
+    "color-name": "^1.1.4",
+    "css.escape": "^1.5.1",
+    "culori": "^0.20.1",
+    "detect-indent": "^7.0.0",
+    "dlv": "^1.1.3",
+    "dset": "^3.1.1",
+    "line-column": "^1.0.2",
+    "moo": "^0.5.1",
+    "multi-regexp2": "^1.0.3",
+    "postcss": "^8.4.5",
+    "postcss-selector-parser": "^6.0.9",
+    "semver": "^7.3.5",
+    "sift-string": "^0.0.2",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.4"
   }
 }

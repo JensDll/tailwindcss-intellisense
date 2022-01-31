@@ -1,4 +1,4 @@
-import isObject from './isObject'
+import { isObject } from './isObject'
 
 export type MinMaxScreen = {
   min?: string
@@ -22,10 +22,10 @@ export function stringifyScreen(screen: Screen): string | undefined {
     return `@media ${(screen as RawScreen).raw}`
   }
   let str = (Array.isArray(screen) ? screen : [screen])
-    .map((range) => {
+    .map(range => {
       return [
         typeof range.min === 'string' ? `(min-width: ${range.min})` : null,
-        typeof range.max === 'string' ? `(max-width: ${range.max})` : null,
+        typeof range.max === 'string' ? `(max-width: ${range.max})` : null
       ]
         .filter(Boolean)
         .join(' and ')

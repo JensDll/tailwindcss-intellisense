@@ -1,6 +1,7 @@
+import dlv from 'dlv'
+
 import { State, ClassNameMeta } from './state'
 import { getClassNameParts } from './getClassNameAtPosition'
-const dlv = require('dlv')
 
 export function getClassNameMeta(
   state: State,
@@ -13,11 +14,11 @@ export function getClassNameMeta(
   const info = dlv(state.classNames.classNames, [...parts, '__info'])
 
   if (Array.isArray(info)) {
-    return info.map((i) => ({
+    return info.map(i => ({
       source: i.__source,
       pseudo: i.__pseudo,
       scope: i.__scope,
-      context: i.__context,
+      context: i.__context
     }))
   }
 
@@ -25,6 +26,6 @@ export function getClassNameMeta(
     source: info.__source,
     pseudo: info.__pseudo,
     scope: info.__scope,
-    context: info.__context,
+    context: info.__context
   }
 }

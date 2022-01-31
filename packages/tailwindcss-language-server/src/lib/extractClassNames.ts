@@ -1,5 +1,5 @@
 import selectorParser from 'postcss-selector-parser'
-import dset from 'dset'
+import { dset } from 'dset'
 import dlv from 'dlv'
 import type { Container, Node, Root, AtRule, Document } from 'postcss'
 
@@ -42,7 +42,7 @@ function getClassNamesFromSelector(selector: string) {
           className: node.value.trim(),
           scope: createSelectorFromNodes(scope),
           __rule: j === subSelector.nodes.length - 1,
-          __pseudo: pseudo.map(String),
+          __pseudo: pseudo.map(String)
         })
       }
       scope.push(node, ...pseudo)
@@ -52,13 +52,13 @@ function getClassNamesFromSelector(selector: string) {
   return classNames
 }
 
-async function process(root: Root) {
+export async function extractClassNames(root: Root | Document) {
   const tree = {}
   const commonContext = {}
 
   let layer
 
-  root.walk((node) => {
+  root.walk(node => {
     if (node.type === 'comment') {
       let match = node.text.trim().match(/^__tw_intellisense_layer_([a-z]+)__$/)
       if (match === null) return
@@ -73,11 +73,11 @@ async function process(root: Root) {
     const classNames = getClassNamesFromSelector(rule.selector)
 
     const decls = {}
-    rule.walkDecls((decl) => {
+    rule.walkDecls(decl => {
       if (decls[decl.prop]) {
         decls[decl.prop] = [
           ...(Array.isArray(decls[decl.prop]) ? decls[decl.prop] : [decls[decl.prop]]),
-          decl.value,
+          decl.value
         ]
       } else {
         decls[decl.prop] = decl.value
@@ -119,7 +119,7 @@ async function process(root: Root) {
       dset(tree, [...baseKeys, '__info', ...index, '__context'], context.concat([]).reverse())
 
       // common context
-      context.push(...classNames[i].__pseudo.map((x) => `&${x}`))
+      context.push(...classNames[i].__pseudo.map(x => `&${x}`))
 
       for (let i = 0; i < contextKeys.length; i++) {
         if (typeof commonContext[contextKeys[i]] === 'undefined') {
@@ -135,7 +135,7 @@ async function process(root: Root) {
 }
 
 function intersection<T>(arr1: T[], arr2: T[]): T[] {
-  return arr1.filter((value) => arr2.indexOf(value) !== -1)
+  return arr1.filter(value => arr2.indexOf(value) !== -1)
 }
 
 function dsetEach(obj, keys: string[], values: Record<string, string>) {
@@ -144,5 +144,3 @@ function dsetEach(obj, keys: string[], values: Record<string, string>) {
     dset(obj, [...keys, k[i]], values[k[i]])
   }
 }
-
-export default process
