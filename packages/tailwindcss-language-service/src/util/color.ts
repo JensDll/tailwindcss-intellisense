@@ -3,7 +3,14 @@ import { Color } from 'vscode-languageserver'
 import * as culori from 'culori'
 import namedColors from 'color-name'
 
-import { jit, getClassNameParts, ensureArray, dedupe, removeMeta, State } from './index'
+import {
+  jit,
+  getClassNameParts,
+  ensureArray,
+  dedupe,
+  removeMeta,
+  State
+} from './index'
 
 const COLOR_PROPS = [
   'accent-color',
@@ -61,7 +68,9 @@ function getColorFromDecls(
     // ignore content: "";
     if (
       prop === 'content' &&
-      (decls[prop] === '""' || decls[prop] === "''" || decls[prop] === 'var(--tw-content)')
+      (decls[prop] === '""' ||
+        decls[prop] === "''" ||
+        decls[prop] === 'var(--tw-content)')
     ) {
       return false
     }
@@ -74,14 +83,19 @@ function getColorFromDecls(
 
   const areAllCustom = nonCustomProps.length === 0
 
-  if (!areAllCustom && nonCustomProps.some(prop => !COLOR_PROPS.includes(prop))) {
+  if (
+    !areAllCustom &&
+    nonCustomProps.some(prop => !COLOR_PROPS.includes(prop))
+  ) {
     // they should all be color-based props
     return null
   }
 
   const propsToCheck = areAllCustom ? props : nonCustomProps
 
-  const colors = propsToCheck.flatMap(prop => ensureArray(decls[prop]).flatMap(getColorsInString))
+  const colors = propsToCheck.flatMap(prop =>
+    ensureArray(decls[prop]).flatMap(getColorsInString)
+  )
 
   // check that all of the values are valid colors
   // if (colors.some((color) => color instanceof TinyColor && !color.isValid)) {
@@ -91,7 +105,9 @@ function getColorFromDecls(
   // check that all of the values are the same color, ignoring alpha
   const colorStrings = dedupe(
     colors.map(color =>
-      typeof color === 'string' ? color : culori.formatRgb({ ...color, alpha: undefined })
+      typeof color === 'string'
+        ? color
+        : culori.formatRgb({ ...color, alpha: undefined })
     )
   )
   if (colorStrings.length !== 1) {
@@ -120,7 +136,10 @@ function getColorFromDecls(
   return null
 }
 
-export function getColor(state: State, className: string): culori.Color | KeywordColor | null {
+export function getColor(
+  state: State,
+  className: string
+): culori.Color | KeywordColor | null {
   if (state.jit) {
     if (state.classNames) {
       const item = dlv(state.classNames.classNames, [className, '__info'])
@@ -157,7 +176,9 @@ export function getColor(state: State, className: string): culori.Color | Keywor
   return getColorFromDecls(removeMeta(item))
 }
 
-export function getColorFromValue(value: unknown): culori.Color | KeywordColor | null {
+export function getColorFromValue(
+  value: unknown
+): culori.Color | KeywordColor | null {
   if (typeof value !== 'string') return null
   const trimmedValue = value.trim()
   if (trimmedValue.toLowerCase() === 'transparent') {

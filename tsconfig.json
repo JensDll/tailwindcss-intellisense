@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
     "strict": false,
     "allowJs": true,
     "checkJs": false,
@@ -8,7 +11,13 @@
     "resolveJsonModule": true,
     "moduleResolution": "node"
   },
-  "include": ["packages/*/src", "packages/*/__tests__"],
+  "include": [
+    "scripts",
+    "types",
+    "packages/*/src",
+    "packages/*/scripts",
+    "packages/*/__tests__"
+  ],
   "references": [
     { "path": "./packages/tailwindcss-language-server" },
     { "path": "./packages/tailwindcss-language-service" },

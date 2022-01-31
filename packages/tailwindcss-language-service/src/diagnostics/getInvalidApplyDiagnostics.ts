@@ -11,7 +11,13 @@ export async function getInvalidApplyDiagnostics(
   let severity = settings.tailwindCSS.lint.invalidApply
   if (severity === 'ignore') return []
 
-  const classNames = await findClassNamesInRange(state, document, undefined, 'css', false)
+  const classNames = await findClassNamesInRange(
+    state,
+    document,
+    undefined,
+    'css',
+    false
+  )
 
   let diagnostics: InvalidApplyDiagnostic[] = classNames.map(className => {
     let result = validateApply(state, className.className)

@@ -8,7 +8,8 @@ const platform = os.platform()
 const abi = process.versions.modules
 const runtime = isElectron() ? 'electron' : 'node'
 const libc = process.env.LIBC || (isAlpine(platform) ? 'musl' : 'glibc')
-const armv = process.env.ARM_VERSION || (arch === 'arm64' ? '8' : vars.arm_version) || ''
+const armv =
+  process.env.ARM_VERSION || (arch === 'arm64' ? '8' : vars.arm_version) || ''
 const uv = (process.versions.uv || '').split('.')[0]
 
 const prebuilds = {
@@ -23,7 +24,8 @@ const prebuilds = {
   'linux-x64': {
     'node.napi.glibc.node': () =>
       require('@parcel/watcher/prebuilds/linux-x64/node.napi.glibc.node'),
-    'node.napi.musl.node': () => require('@parcel/watcher/prebuilds/linux-x64/node.napi.musl.node')
+    'node.napi.musl.node': () =>
+      require('@parcel/watcher/prebuilds/linux-x64/node.napi.musl.node')
   },
   'win32-x64': {
     'node.napi.glibc.node': () =>
@@ -68,7 +70,11 @@ exports.subscribe = async (dir, fn, opts) => {
 }
 
 exports.unsubscribe = (dir, fn, opts) => {
-  return getBinding().unsubscribe(path.resolve(dir), fn, normalizeOptions(dir, opts))
+  return getBinding().unsubscribe(
+    path.resolve(dir),
+    fn,
+    normalizeOptions(dir, opts)
+  )
 }
 
 function resolve() {
@@ -195,7 +201,11 @@ function normalizeOptions(dir, opts = {}) {
 function isElectron() {
   if (process.versions && process.versions.electron) return true
   if (process.env.ELECTRON_RUN_AS_NODE) return true
-  return typeof window !== 'undefined' && window.process && window.process.type === 'renderer'
+  return (
+    typeof window !== 'undefined' &&
+    window.process &&
+    window.process.type === 'renderer'
+  )
 }
 
 function isAlpine(platform) {

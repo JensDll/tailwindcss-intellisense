@@ -24,5 +24,7 @@ declare module 'culori' {
 
   export function converter<T extends Mode>(
     mode: T
-  ): (color: Color | string) => T extends 'rgb' ? RgbColor : T extends 'hsl' ? HslColor : never
+  ): (
+    color: Color | string
+  ) => T extends 'rgb' ? RgbColor : T extends 'hsl' ? HslColor : never
 }

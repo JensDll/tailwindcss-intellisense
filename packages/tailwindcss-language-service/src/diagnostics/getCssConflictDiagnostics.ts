@@ -62,7 +62,11 @@ export async function getCssConflictDiagnostics(
           if (!context) {
             context = jit.getRuleContext(state, rule, className.className)
           }
-          let otherContext = jit.getRuleContext(state, otherRule, otherClassName.className)
+          let otherContext = jit.getRuleContext(
+            state,
+            otherRule,
+            otherClassName.className
+          )
 
           if (!equal(context, otherContext)) {
             return false
@@ -85,17 +89,21 @@ export async function getCssConflictDiagnostics(
           message: `'${className.className}' applies the same CSS ${
             properties.length === 1 ? 'property' : 'properties'
           } as ${joinWithAnd(
-            conflictingClassNames.map(conflictingClassName => `'${conflictingClassName.className}'`)
+            conflictingClassNames.map(
+              conflictingClassName => `'${conflictingClassName.className}'`
+            )
           )}.`,
-          relatedInformation: conflictingClassNames.map(conflictingClassName => {
-            return {
-              message: conflictingClassName.className,
-              location: {
-                uri: document.uri,
-                range: conflictingClassName.range
+          relatedInformation: conflictingClassNames.map(
+            conflictingClassName => {
+              return {
+                message: conflictingClassName.className,
+                location: {
+                  uri: document.uri,
+                  range: conflictingClassName.range
+                }
               }
             }
-          })
+          )
         })
 
         return
@@ -139,7 +147,9 @@ export async function getCssConflictDiagnostics(
         message: `'${className.className}' applies the same CSS ${
           properties.length === 1 ? 'property' : 'properties'
         } as ${joinWithAnd(
-          conflictingClassNames.map(conflictingClassName => `'${conflictingClassName.className}'`)
+          conflictingClassNames.map(
+            conflictingClassName => `'${conflictingClassName.className}'`
+          )
         )}.`,
         relatedInformation: conflictingClassNames.map(conflictingClassName => {
           return {

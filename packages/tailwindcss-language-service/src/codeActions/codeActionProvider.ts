@@ -38,7 +38,10 @@ async function getDiagnosticsFromCodeActionParams(
     .filter(Boolean)
 }
 
-export async function doCodeActions(state: State, params: CodeActionParams): Promise<CodeAction[]> {
+export async function doCodeActions(
+  state: State,
+  params: CodeActionParams
+): Promise<CodeAction[]> {
   let diagnostics = await getDiagnosticsFromCodeActionParams(
     state,
     params,

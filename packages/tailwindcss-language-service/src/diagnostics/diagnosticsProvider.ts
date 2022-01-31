@@ -49,7 +49,11 @@ export async function doValidate(
           ? getInvalidTailwindDirectiveDiagnostics(state, document, settings)
           : []),
         ...(only.includes(DiagnosticKind.RecommendedVariantOrder)
-          ? await getRecommendedVariantOrderDiagnostics(state, document, settings)
+          ? await getRecommendedVariantOrderDiagnostics(
+              state,
+              document,
+              settings
+            )
           : [])
       ]
     : []

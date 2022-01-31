@@ -9,7 +9,8 @@ export function getClassNameParts(state: State, className: string): string[] {
   let parts: string[] = className.split(separator)
 
   if (parts.length === 1) {
-    return dlv(state.classNames.classNames, [className, '__info', '__rule']) === true ||
+    return dlv(state.classNames.classNames, [className, '__info', '__rule']) ===
+      true ||
       Array.isArray(dlv(state.classNames.classNames, [className, '__info']))
       ? [className]
       : null

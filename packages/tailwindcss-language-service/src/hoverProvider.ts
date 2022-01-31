@@ -25,7 +25,11 @@ export async function doHover(
   )
 }
 
-function provideCssHelperHover(state: State, document: TextDocument, position: Position): Hover {
+function provideCssHelperHover(
+  state: State,
+  document: TextDocument,
+  position: Position
+): Hover {
   if (!isCssContext(state, document, position)) return null
 
   const line = document.getText({
@@ -33,7 +37,9 @@ function provideCssHelperHover(state: State, document: TextDocument, position: P
     end: { line: position.line + 1, character: 0 }
   })
 
-  const match = line.match(/(?<helper>theme|config)\((?<quote>['"])(?<key>[^)]+)\k<quote>\)/)
+  const match = line.match(
+    /(?<helper>theme|config)\((?<quote>['"])(?<key>[^)]+)\k<quote>\)/
+  )
 
   if (match === null) return null
 
@@ -118,7 +124,11 @@ async function provideClassNameHover(
     dlv(state.classNames.classNames, [...parts, '__info']),
     {
       tabSize: dlv(settings, 'editor.tabSize', 2),
-      showPixelEquivalents: dlv(settings, 'tailwindCSS.showPixelEquivalents', true),
+      showPixelEquivalents: dlv(
+        settings,
+        'tailwindCSS.showPixelEquivalents',
+        true
+      ),
       rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16)
     }
   )

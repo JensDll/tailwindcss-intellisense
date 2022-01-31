@@ -12,7 +12,11 @@ export function isJsDoc(state: State, doc: TextDocument): boolean {
   return [...jsLanguages, ...userJsLanguages].indexOf(doc.languageId) !== -1
 }
 
-export function isJsContext(state: State, doc: TextDocument, position: Position): boolean {
+export function isJsContext(
+  state: State,
+  doc: TextDocument,
+  position: Position
+): boolean {
   if (isJsDoc(state, doc)) {
     return true
   }

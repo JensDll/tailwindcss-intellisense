@@ -1,9 +1,12 @@
+import url from 'url'
 import fs from 'fs'
 import path from 'path'
 
 import checker from 'license-checker'
 
-import { PackageName } from 'utils'
+import { PackageName } from './utils'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getDeps(name: PackageName): string[] {
   const packageJson: Record<string, unknown> = JSON.parse(
@@ -17,13 +20,16 @@ function getDeps(name: PackageName): string[] {
 
 function getLicenses(name: PackageName) {
   return new Promise<checker.ModuleInfos>((resolve, reject) => {
-    checker.init({ start: path.resolve('packages', name) }, (error, packages) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve(packages)
+    checker.init(
+      { start: path.resolve('packages', name) },
+      (error, packages) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(packages)
+        }
       }
-    })
+    )
   })
 }
 
@@ -44,11 +50,16 @@ for (const [name, moduleInfo] of Object.entries(allLicenses)) {
 
   if (allDeps.has(nameWithoutVersion)) {
     const pathToLicense = moduleInfo.licenseFile
-    const license = pathToLicense && fs.readFileSync(pathToLicense, 'utf-8').trim()
+    const license =
+      pathToLicense && fs.readFileSync(pathToLicense, 'utf-8').trim()
     if (license) {
       contents.push(`${name}\n\n${license}`)
     }
   }
 }
 
-fs.writeFileSync('ThirdPartyNotices.txt', contents.join(`\n\n${'='.repeat(100)}\n\n`), 'utf-8')
+fs.writeFileSync(
+  'ThirdPartyNotices.txt',
+  contents.join(`\n\n${'='.repeat(100)}\n\n`),
+  'utf-8'
+)

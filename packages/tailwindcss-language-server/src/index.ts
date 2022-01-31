@@ -114,7 +114,9 @@ const colorNames = Object.keys(namedColors)
 declare var __non_webpack_require__: typeof require
 
 const connection =
-  process.argv.length <= 2 ? createConnection(process.stdin, process.stdout) : createConnection()
+  process.argv.length <= 2
+    ? createConnection(process.stdin, process.stdout)
+    : createConnection()
 
 console.log = connection.console.log.bind(connection.console)
 console.error = connection.console.error.bind(connection.console)
@@ -140,7 +142,10 @@ function deletePropertyPath(obj: any, path: string | string[]): void {
 
 function getConfigId(configPath: string, configDependencies: string[]): string {
   return JSON.stringify(
-    [configPath, ...configDependencies].map(file => [file, fs.statSync(file).mtimeMs])
+    [configPath, ...configDependencies].map(file => [
+      file,
+      fs.statSync(file).mtimeMs
+    ])
   )
 }
 
@@ -176,7 +181,9 @@ interface ProjectService {
   onCompletionResolve(item: CompletionItem): Promise<CompletionItem>
   provideDiagnostics(document: TextDocument): void
   onDocumentColor(params: DocumentColorParams): Promise<ColorInformation[]>
-  onColorPresentation(params: ColorPresentationParams): Promise<ColorPresentation[]>
+  onColorPresentation(
+    params: ColorPresentationParams
+  ): Promise<ColorPresentation[]>
   onCodeAction(params: CodeActionParams): Promise<CodeAction[]>
 }
 
@@ -258,9 +265,13 @@ async function createProjectService(
   let registrations: Promise<BulkUnregistration>
 
   let chokidarWatcher: chokidar.FSWatcher
-  let ignore = state.editor.globalSettings.tailwindCSS.files?.exclude ?? DEFAULT_FILES_EXCLUDE
+  let ignore =
+    state.editor.globalSettings.tailwindCSS.files?.exclude ??
+    DEFAULT_FILES_EXCLUDE
 
-  function onFileEvents(changes: Array<{ file: string; type: FileChangeType }>): void {
+  function onFileEvents(
+    changes: Array<{ file: string; type: FileChangeType }>
+  ): void {
     let needsInit = false
     let needsRebuild = false
 
@@ -277,7 +288,8 @@ async function createProjectService(
         dot: true
       })
       let isPackageFile = minimatch(file, `**/${PACKAGE_GLOB}`, { dot: true })
-      let isDependency = state.dependencies && state.dependencies.includes(change.file)
+      let isDependency =
+        state.dependencies && state.dependencies.includes(change.file)
 
       if (!isConfigFile && !isPackageFile && !isDependency) continue
 
@@ -308,7 +320,9 @@ async function createProjectService(
     }
   }
 
-  if (params.capabilities.workspace?.didChangeWatchedFiles?.dynamicRegistration) {
+  if (
+    params.capabilities.workspace?.didChangeWatchedFiles?.dynamicRegistration
+  ) {
     connection.onDidChangeWatchedFiles(({ changes }) => {
       onFileEvents(
         changes.map(({ uri, type }) => ({
@@ -319,7 +333,10 @@ async function createProjectService(
     })
 
     connection.client.register(DidChangeWatchedFilesNotification.type, {
-      watchers: [{ globPattern: `**/${CONFIG_FILE_GLOB}` }, { globPattern: `**/${PACKAGE_GLOB}` }]
+      watchers: [
+        { globPattern: `**/${CONFIG_FILE_GLOB}` },
+        { globPattern: `**/${PACKAGE_GLOB}` }
+      ]
     })
   } else if (parcel.getBinding()) {
     let typeMap = {
@@ -331,11 +348,16 @@ async function createProjectService(
     let subscription = await parcel.subscribe(
       folder,
       (err, events) => {
-        onFileEvents(events.map(event => ({ file: event.path, type: typeMap[event.type] })))
+        onFileEvents(
+          events.map(event => ({ file: event.path, type: typeMap[event.type] }))
+        )
       },
       {
         ignore: ignore.map(ignorePattern =>
-          path.resolve(folder, ignorePattern.replace(/^[*/]+/, '').replace(/[*/]+$/, ''))
+          path.resolve(
+            folder,
+            ignorePattern.replace(/^[*/]+/, '').replace(/[*/]+$/, '')
+          )
         )
       }
     )
@@ -364,8 +386,12 @@ async function createProjectService(
 
     chokidarWatcher
       .on('add', file => onFileEvents([{ file, type: FileChangeType.Created }]))
-      .on('change', file => onFileEvents([{ file, type: FileChangeType.Changed }]))
-      .on('unlink', file => onFileEvents([{ file, type: FileChangeType.Deleted }]))
+      .on('change', file =>
+        onFileEvents([{ file, type: FileChangeType.Changed }])
+      )
+      .on('unlink', file =>
+        onFileEvents([{ file, type: FileChangeType.Deleted }])
+      )
 
     disposables.push({
       dispose() {
@@ -394,7 +420,9 @@ async function createProjectService(
       capabilities.add(CompletionRequest.type, {
         documentSelector: null,
         resolveProvider: true,
-        triggerCharacters: [...TRIGGER_CHARACTERS, state.separator].filter(Boolean)
+        triggerCharacters: [...TRIGGER_CHARACTERS, state.separator].filter(
+          Boolean
+        )
       })
       if (watchFiles.length > 0) {
         capabilities.add(DidChangeWatchedFilesNotification.type, {
@@ -453,7 +481,9 @@ async function createProjectService(
     let [configPath] = (
       await glob([`**/${CONFIG_FILE_GLOB}`], {
         cwd: folder,
-        ignore: state.editor.globalSettings.tailwindCSS.files?.exclude ?? DEFAULT_FILES_EXCLUDE,
+        ignore:
+          state.editor.globalSettings.tailwindCSS.files?.exclude ??
+          DEFAULT_FILES_EXCLUDE,
         onlyFiles: true,
         absolute: true,
         suppressErrors: true,
@@ -508,13 +538,19 @@ async function createProjectService(
 
     try {
       const tailwindcssPath = resolveFrom(configDir, 'tailwindcss')
-      const tailwindcssPkgPath = resolveFrom(configDir, 'tailwindcss/package.json')
+      const tailwindcssPkgPath = resolveFrom(
+        configDir,
+        'tailwindcss/package.json'
+      )
       const tailwindDir = path.dirname(tailwindcssPkgPath)
 
       const postcssPath = resolveFrom(tailwindDir, 'postcss')
       const postcssPkgPath = resolveFrom(tailwindDir, 'postcss/package.json')
       const postcssDir = path.dirname(postcssPkgPath)
-      const postcssSelectorParserPath = resolveFrom(tailwindDir, 'postcss-selector-parser')
+      const postcssSelectorParserPath = resolveFrom(
+        tailwindDir,
+        'postcss-selector-parser'
+      )
 
       postcssVersion = __non_webpack_require__(postcssPkgPath).version
       tailwindcssVersion = __non_webpack_require__(tailwindcssPkgPath).version
@@ -522,7 +558,9 @@ async function createProjectService(
       pluginVersions = Object.keys(tailwindPlugins)
         .map(plugin => {
           try {
-            return __non_webpack_require__(resolveFrom(configDir, `${plugin}/package.json`)).version
+            return __non_webpack_require__(
+              resolveFrom(configDir, `${plugin}/package.json`)
+            ).version
           } catch (_) {
             return ''
           }
@@ -550,7 +588,9 @@ async function createProjectService(
       console.log(`Loaded tailwindcss v${tailwindcssVersion}: ${tailwindDir}`)
 
       try {
-        resolveConfigFn = __non_webpack_require__(resolveFrom(tailwindDir, './resolveConfig.js'))
+        resolveConfigFn = __non_webpack_require__(
+          resolveFrom(tailwindDir, './resolveConfig.js')
+        )
       } catch (_) {
         try {
           const resolveConfig = __non_webpack_require__(
@@ -575,7 +615,10 @@ async function createProjectService(
         }
       }
 
-      if (semver.gte(tailwindcssVersion, '1.4.0') && semver.lte(tailwindcssVersion, '1.99.0')) {
+      if (
+        semver.gte(tailwindcssVersion, '1.4.0') &&
+        semver.lte(tailwindcssVersion, '1.99.0')
+      ) {
         const browserslistPath = resolveFrom(tailwindDir, 'browserslist')
         // TODO: set path to nearest dir with package.json?
         browserslist = __non_webpack_require__(browserslistPath)(undefined, {
@@ -585,7 +628,9 @@ async function createProjectService(
 
       if (semver.gte(tailwindcssVersion, '1.99.0')) {
         applyComplexClasses = firstOptional(() =>
-          __non_webpack_require__(resolveFrom(tailwindDir, './lib/lib/substituteClassApplyAtRules'))
+          __non_webpack_require__(
+            resolveFrom(tailwindDir, './lib/lib/substituteClassApplyAtRules')
+          )
         )
       } else if (semver.gte(tailwindcssVersion, '1.7.0')) {
         applyComplexClasses = __non_webpack_require__(
@@ -616,7 +661,10 @@ async function createProjectService(
           },
           () => {
             let createContextFn = __non_webpack_require__(
-              resolveFrom(configDir, 'tailwindcss/lib/jit/lib/setupContextUtils')
+              resolveFrom(
+                configDir,
+                'tailwindcss/lib/jit/lib/setupContextUtils'
+              )
             ).createContext
             assert.strictEqual(typeof createContextFn, 'function')
             return state => createContextFn(state.config)
@@ -624,7 +672,10 @@ async function createProjectService(
           // TODO: the next two are canary releases only so can probably be removed
           () => {
             let setupTrackingContext = __non_webpack_require__(
-              resolveFrom(configDir, 'tailwindcss/lib/jit/lib/setupTrackingContext')
+              resolveFrom(
+                configDir,
+                'tailwindcss/lib/jit/lib/setupTrackingContext'
+              )
             ).default
             assert.strictEqual(typeof setupTrackingContext, 'function')
             return state =>
@@ -639,7 +690,8 @@ async function createProjectService(
               resolveFrom(configDir, 'tailwindcss/lib/jit/lib/setupContext')
             ).default
             assert.strictEqual(typeof setupContext, 'function')
-            return state => setupContext(state.configPath, tailwindDirectives)(result, root)
+            return state =>
+              setupContext(state.configPath, tailwindDirectives)(result, root)
           }
         )
 
@@ -647,11 +699,15 @@ async function createProjectService(
           generateRules: {
             module: first(
               () =>
-                __non_webpack_require__(resolveFrom(configDir, 'tailwindcss/lib/lib/generateRules'))
-                  .generateRules,
+                __non_webpack_require__(
+                  resolveFrom(configDir, 'tailwindcss/lib/lib/generateRules')
+                ).generateRules,
               () =>
                 __non_webpack_require__(
-                  resolveFrom(configDir, 'tailwindcss/lib/jit/lib/generateRules')
+                  resolveFrom(
+                    configDir,
+                    'tailwindcss/lib/jit/lib/generateRules'
+                  )
                 ).generateRules
             )
           },
@@ -662,11 +718,17 @@ async function createProjectService(
             module: first(
               () =>
                 __non_webpack_require__(
-                  resolveFrom(configDir, 'tailwindcss/lib/lib/expandApplyAtRules')
+                  resolveFrom(
+                    configDir,
+                    'tailwindcss/lib/lib/expandApplyAtRules'
+                  )
                 ).default,
               () =>
                 __non_webpack_require__(
-                  resolveFrom(configDir, 'tailwindcss/lib/jit/lib/expandApplyAtRules')
+                  resolveFrom(
+                    configDir,
+                    'tailwindcss/lib/jit/lib/expandApplyAtRules'
+                  )
                 ).default
             )
           }
@@ -684,7 +746,8 @@ async function createProjectService(
               ).generateRules
             },
             createContext: {
-              module: state => setupContext(state.configPath, tailwindDirectives)(result, root)
+              module: state =>
+                setupContext(state.configPath, tailwindDirectives)(result, root)
             },
             expandApplyAtRules: {
               module: __non_webpack_require__(
@@ -707,14 +770,18 @@ async function createProjectService(
         },
         createContext: {
           module: state =>
-            require('tailwindcss/lib/lib/setupContextUtils').createContext(state.config)
+            require('tailwindcss/lib/lib/setupContextUtils').createContext(
+              state.config
+            )
         },
         expandApplyAtRules: {
           module: require('tailwindcss/lib/lib/expandApplyAtRules').default
         }
       }
       console.log('Failed to load workspace modules.')
-      console.log(`Using bundled version of \`tailwindcss\`: v${tailwindcssVersion}`)
+      console.log(
+        `Using bundled version of \`tailwindcss\`: v${tailwindcssVersion}`
+      )
       console.log(`Using bundled version of \`postcss\`: v${postcssVersion}`)
     }
 
@@ -734,7 +801,10 @@ async function createProjectService(
     try {
       state.corePlugins = Object.keys(
         __non_webpack_require__(
-          resolveFrom(path.dirname(state.configPath), 'tailwindcss/lib/plugins/index.js')
+          resolveFrom(
+            path.dirname(state.configPath),
+            'tailwindcss/lib/plugins/index.js'
+          )
         )
       )
     } catch (_) {}
@@ -747,13 +817,17 @@ async function createProjectService(
         }
 
         let configClone = klona(config)
-        configClone.separator = typeof state.separator === 'undefined' ? ':' : state.separator
+        configClone.separator =
+          typeof state.separator === 'undefined' ? ':' : state.separator
 
         let fn = _applyComplexClasses(configClone, ...args)
 
         return async css => {
           css.walkRules(rule => {
-            const newSelector = rule.selector.replace(/__TWSEP__(.*?)__TWSEP__/g, '$1')
+            const newSelector = rule.selector.replace(
+              /__TWSEP__(.*?)__TWSEP__/g,
+              '$1'
+            )
             if (newSelector !== rule.selector) {
               rule.before(
                 postcss.comment({
@@ -768,7 +842,10 @@ async function createProjectService(
 
           css.walkComments(comment => {
             if (comment.text.startsWith('__ORIGINAL_SELECTOR__:')) {
-              comment.next().selector = comment.text.replace(/^__ORIGINAL_SELECTOR__:/, '')
+              comment.next().selector = comment.text.replace(
+                /^__ORIGINAL_SELECTOR__:/,
+                ''
+              )
               comment.remove()
             }
           })
@@ -965,11 +1042,17 @@ async function createProjectService(
 
     state.plugins = await getPlugins(originalConfig)
     if (postcssResult) {
-      state.classNames = (await extractClassNames(postcssResult.root as Root)) as ClassNames
+      state.classNames = (await extractClassNames(
+        postcssResult.root as Root
+      )) as ClassNames
     }
     state.variants = getVariants(state)
 
-    let screens = dlv(state.config, 'theme.screens', dlv(state.config, 'screens', {}))
+    let screens = dlv(
+      state.config,
+      'theme.screens',
+      dlv(state.config, 'screens', {})
+    )
     state.screens = isObject(screens) ? Object.keys(screens) : []
 
     state.enabled = true
@@ -990,9 +1073,15 @@ async function createProjectService(
     onUpdateSettings(settings: any): void {
       documentSettingsCache.clear()
       let previousExclude =
-        state.editor.globalSettings.tailwindCSS.files?.exclude ?? DEFAULT_FILES_EXCLUDE
+        state.editor.globalSettings.tailwindCSS.files?.exclude ??
+        DEFAULT_FILES_EXCLUDE
       state.editor.globalSettings = settings
-      if (!equal(previousExclude, settings.tailwindCSS.files?.exclude ?? DEFAULT_FILES_EXCLUDE)) {
+      if (
+        !equal(
+          previousExclude,
+          settings.tailwindCSS.files?.exclude ?? DEFAULT_FILES_EXCLUDE
+        )
+      ) {
         tryInit()
       } else {
         if (state.enabled) {
@@ -1031,18 +1120,27 @@ async function createProjectService(
       if (!state.enabled) return
       provideDiagnostics(state, document)
     }, 500),
-    async onDocumentColor(params: DocumentColorParams): Promise<ColorInformation[]> {
+    async onDocumentColor(
+      params: DocumentColorParams
+    ): Promise<ColorInformation[]> {
       if (!state.enabled) return []
       let document = documentService.getDocument(params.textDocument.uri)
       if (!document) return []
       if (await isExcluded(state, document)) return null
       return getDocumentColors(state, document)
     },
-    async onColorPresentation(params: ColorPresentationParams): Promise<ColorPresentation[]> {
+    async onColorPresentation(
+      params: ColorPresentationParams
+    ): Promise<ColorPresentation[]> {
       let document = documentService.getDocument(params.textDocument.uri)
       let className = document.getText(params.range)
       let match = className.match(
-        new RegExp(`-\\[(${colorNames.join('|')}|(?:(?:#|rgba?\\(|hsla?\\())[^\\]]+)\\]$`, 'i')
+        new RegExp(
+          `-\\[(${colorNames.join(
+            '|'
+          )}|(?:(?:#|rgba?\\(|hsla?\\())[^\\]]+)\\]$`,
+          'i'
+        )
       )
       // let match = className.match(/-\[((?:#|rgba?\(|hsla?\()[^\]]+)\]$/i)
       if (match === null) return []
@@ -1061,9 +1159,14 @@ async function createProjectService(
 
       let hexValue = culori.formatHex8(color)
 
-      if (!isNamedColor && (currentColor.length === 4 || currentColor.length === 5)) {
+      if (
+        !isNamedColor &&
+        (currentColor.length === 4 || currentColor.length === 5)
+      ) {
         let [, ...chars] =
-          hexValue.match(/^#([a-f\d])\1([a-f\d])\2([a-f\d])\3(?:([a-f\d])\4)?$/i) ?? []
+          hexValue.match(
+            /^#([a-f\d])\1([a-f\d])\2([a-f\d])\3(?:([a-f\d])\4)?$/i
+          ) ?? []
         if (chars.length) {
           hexValue = `#${chars.filter(Boolean).join('')}`
         }
@@ -1084,7 +1187,10 @@ async function createProjectService(
           .formatHsl(color)
           .replace(/ /g, '')
           // round numbers
-          .replace(/\d+\.\d+(%?)/g, (value, suffix) => `${Math.round(parseFloat(value))}${suffix}`)
+          .replace(
+            /\d+\.\d+(%?)/g,
+            (value, suffix) => `${Math.round(parseFloat(value))}${suffix}`
+          )
       ].map(value => ({ label: `${prefix}-[${value}]` }))
     }
   }
@@ -1107,7 +1213,8 @@ function runPlugin(
   let postcss = state.modules.postcss.module
   let browserslist = state.browserslist
 
-  const browserslistTarget = browserslist && browserslist.includes('ie 11') ? 'ie11' : 'relaxed'
+  const browserslistTarget =
+    browserslist && browserslist.includes('ie 11') ? 'ie11' : 'relaxed'
   const pluginFn = typeof plugin === 'function' ? plugin : plugin.handler
 
   try {
@@ -1130,7 +1237,9 @@ function runPlugin(
       },
       target: path => {
         if (typeof config.target === 'string') {
-          return config.target === 'browserslist' ? browserslistTarget : config.target
+          return config.target === 'browserslist'
+            ? browserslistTarget
+            : config.target
         }
         const [defaultTarget, targetOverrides] = dlv(config, 'target')
         const target = dlv(targetOverrides, path, defaultTarget)
@@ -1159,9 +1268,9 @@ function getVariants(state: State): Record<string, string> {
     // [name, [[sort, fn]]]
     Array.from(state.jitContext.variantMap as Map<string, [any, any]>).forEach(
       ([variantName, variantFnOrFns]) => {
-        let fns = (Array.isArray(variantFnOrFns[0]) ? variantFnOrFns : [variantFnOrFns]).map(
-          ([_sort, fn]) => fn
-        )
+        let fns = (
+          Array.isArray(variantFnOrFns[0]) ? variantFnOrFns : [variantFnOrFns]
+        ).map(([_sort, fn]) => fn)
 
         let placeholder = '__variant_placeholder__'
 
@@ -1174,9 +1283,12 @@ function getVariants(state: State): Record<string, string> {
           ]
         })
 
-        let classNameParser = state.modules.postcssSelectorParser.module(selectors => {
-          return selectors.first.filter(({ type }) => type === 'class').pop().value
-        })
+        let classNameParser = state.modules.postcssSelectorParser.module(
+          selectors => {
+            return selectors.first.filter(({ type }) => type === 'class').pop()
+              .value
+          }
+        )
 
         function getClassNameFromSelector(selector) {
           return classNameParser.transformSync(selector)
@@ -1255,15 +1367,18 @@ function getVariants(state: State): Record<string, string> {
   let tailwindcssVersion = state.modules.tailwindcss.version
 
   let variants = ['responsive', 'hover']
-  semver.gte(tailwindcssVersion, '0.3.0') && variants.push('focus', 'group-hover')
+  semver.gte(tailwindcssVersion, '0.3.0') &&
+    variants.push('focus', 'group-hover')
   semver.gte(tailwindcssVersion, '0.5.0') && variants.push('active')
   semver.gte(tailwindcssVersion, '0.7.0') && variants.push('focus-within')
   semver.gte(tailwindcssVersion, '1.0.0-beta.1') && variants.push('default')
   semver.gte(tailwindcssVersion, '1.1.0') &&
     variants.push('first', 'last', 'odd', 'even', 'disabled', 'visited')
   semver.gte(tailwindcssVersion, '1.3.0') && variants.push('group-focus')
-  semver.gte(tailwindcssVersion, '1.5.0') && variants.push('focus-visible', 'checked')
-  semver.gte(tailwindcssVersion, '1.6.0') && variants.push('motion-safe', 'motion-reduce')
+  semver.gte(tailwindcssVersion, '1.5.0') &&
+    variants.push('focus-visible', 'checked')
+  semver.gte(tailwindcssVersion, '1.6.0') &&
+    variants.push('motion-safe', 'motion-reduce')
   semver.gte(tailwindcssVersion, '2.0.0-alpha.1') && variants.push('dark')
 
   let plugins = Array.isArray(config.plugins) ? config.plugins : []
@@ -1294,13 +1409,19 @@ async function getPlugins(config: any) {
       }
 
       let contributes = {
-        theme: isObject(pluginConfig.theme) ? Object.keys(pluginConfig.theme) : [],
-        variants: isObject(pluginConfig.variants) ? Object.keys(pluginConfig.variants) : []
+        theme: isObject(pluginConfig.theme)
+          ? Object.keys(pluginConfig.theme)
+          : [],
+        variants: isObject(pluginConfig.variants)
+          ? Object.keys(pluginConfig.variants)
+          : []
       }
 
       const fn = plugin.handler || plugin
       const fnName =
-        typeof fn.name === 'string' && fn.name !== 'handler' && fn.name !== '' ? fn.name : null
+        typeof fn.name === 'string' && fn.name !== 'handler' && fn.name !== ''
+          ? fn.name
+          : null
 
       try {
         fn()
@@ -1416,7 +1537,10 @@ class TW {
     })
   }
 
-  private async addProject(folder: string, params: InitializeParams): Promise<void> {
+  private async addProject(
+    folder: string,
+    params: InitializeParams
+  ): Promise<void> {
     if (this.projects.has(folder)) {
       await this.projects.get(folder).tryInit()
     } else {
@@ -1440,12 +1564,16 @@ class TW {
     this.connection.onCodeAction(this.onCodeAction.bind(this))
   }
 
-  async onDocumentColor(params: DocumentColorParams): Promise<ColorInformation[]> {
+  async onDocumentColor(
+    params: DocumentColorParams
+  ): Promise<ColorInformation[]> {
     const project = Array.from(this.projects.values())[0]
     return project?.onDocumentColor(params) ?? []
   }
 
-  async onColorPresentation(params: ColorPresentationParams): Promise<ColorPresentation[]> {
+  async onColorPresentation(
+    params: ColorPresentationParams
+  ): Promise<ColorPresentation[]> {
     const project = Array.from(this.projects.values())[0]
     return project?.onColorPresentation(params) ?? []
   }
@@ -1509,7 +1637,10 @@ class DocumentService {
   }
 }
 
-function supportsDynamicRegistration(connection: Connection, params: InitializeParams): boolean {
+function supportsDynamicRegistration(
+  connection: Connection,
+  params: InitializeParams
+): boolean {
   return (
     connection.onInitialized &&
     params.capabilities.textDocument.hover.dynamicRegistration &&
@@ -1521,32 +1652,34 @@ function supportsDynamicRegistration(connection: Connection, params: InitializeP
 
 const tw = new TW(connection)
 
-connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
-  tw.initializeParams = params
+connection.onInitialize(
+  async (params: InitializeParams): Promise<InitializeResult> => {
+    tw.initializeParams = params
 
-  if (supportsDynamicRegistration(connection, params)) {
+    if (supportsDynamicRegistration(connection, params)) {
+      return {
+        capabilities: {
+          textDocumentSync: TextDocumentSyncKind.Full
+        }
+      }
+    }
+
+    tw.init()
+
     return {
       capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Full
+        textDocumentSync: TextDocumentSyncKind.Full,
+        hoverProvider: true,
+        colorProvider: true,
+        codeActionProvider: true,
+        completionProvider: {
+          resolveProvider: true,
+          triggerCharacters: [...TRIGGER_CHARACTERS, ':']
+        }
       }
     }
   }
-
-  tw.init()
-
-  return {
-    capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Full,
-      hoverProvider: true,
-      colorProvider: true,
-      codeActionProvider: true,
-      completionProvider: {
-        resolveProvider: true,
-        triggerCharacters: [...TRIGGER_CHARACTERS, ':']
-      }
-    }
-  }
-})
+)
 
 connection.onInitialized(async () => {
   await tw.init()

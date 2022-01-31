@@ -15,7 +15,10 @@ export function validateApply(
   const meta = getClassNameMeta(state, classNameOrParts)
   if (!meta) return null
 
-  if (semver.gte(state.version, '2.0.0-alpha.1') || flagEnabled(state, 'applyComplexClasses')) {
+  if (
+    semver.gte(state.version, '2.0.0-alpha.1') ||
+    flagEnabled(state, 'applyComplexClasses')
+  ) {
     return { isApplyable: true }
   }
 

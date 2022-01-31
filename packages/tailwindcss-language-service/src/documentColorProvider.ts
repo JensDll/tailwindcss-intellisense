@@ -28,7 +28,11 @@ export async function getDocumentColors(
     let classNames = getClassNamesInClassList(classList)
     classNames.forEach(className => {
       let color = getColor(state, className.className)
-      if (color === null || typeof color === 'string' || (color.alpha ?? 1) === 0) {
+      if (
+        color === null ||
+        typeof color === 'string' ||
+        (color.alpha ?? 1) === 0
+      ) {
         return
       }
       colors.push({

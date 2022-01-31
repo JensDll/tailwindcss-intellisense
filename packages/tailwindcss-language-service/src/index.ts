@@ -4,7 +4,11 @@ export * from './util'
 
 export * from './diagnostics'
 
-export { doComplete, resolveCompletionItem, completionsFromClassList } from './completionProvider'
+export {
+  doComplete,
+  resolveCompletionItem,
+  completionsFromClassList
+} from './completionProvider'
 
 export { getDocumentColors } from './documentColorProvider'
 

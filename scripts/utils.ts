@@ -5,6 +5,10 @@ export type PackageName =
   | 'tailwindcss-language-service'
   | 'tailwindcss-language-server'
 
-export function run(file: string, args?: readonly string[], options: Omit<Options, 'stdio'> = {}) {
+export function run(
+  file: string,
+  args?: readonly string[],
+  options: Omit<Options, 'stdio'> = {}
+) {
   return execa(file, args, { ...options, stdio: 'inherit' })
 }

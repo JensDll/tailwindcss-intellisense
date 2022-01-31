@@ -35,16 +35,24 @@ export async function getRecommendedVariantOrderDiagnostics(
         return
       }
 
-      let { variants, offset } = getVariantsFromClassName(state, className.className)
+      let { variants, offset } = getVariantsFromClassName(
+        state,
+        className.className
+      )
       let sortedVariants = [...variants].sort((a, b) =>
-        jit.bigSign(state.jitContext.variantOrder.get(b) - state.jitContext.variantOrder.get(a))
+        jit.bigSign(
+          state.jitContext.variantOrder.get(b) -
+            state.jitContext.variantOrder.get(a)
+        )
       )
 
       if (!equalExact(variants, sortedVariants)) {
         diagnostics.push({
           code: DiagnosticKind.RecommendedVariantOrder,
           suggestions: [
-            [...sortedVariants, className.className.substr(offset)].join(state.separator)
+            [...sortedVariants, className.className.substr(offset)].join(
+              state.separator
+            )
           ],
           range: className.range,
           severity:

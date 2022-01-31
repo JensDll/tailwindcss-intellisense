@@ -1,10 +1,22 @@
 export { absoluteRange } from './absoluteRange'
 
-export { dedupe, dedupeBy, ensureArray, equal, equalExact, flatten } from './array'
+export {
+  dedupe,
+  dedupeBy,
+  ensureArray,
+  equal,
+  equalExact,
+  flatten
+} from './array'
 
 export { closest } from './closest'
 
-export { KeywordColor, culoriColorToVscodeColor, getColor, getColorFromValue } from './color'
+export {
+  KeywordColor,
+  culoriColorToVscodeColor,
+  getColor,
+  getColorFromValue
+} from './color'
 
 export { combinations } from './combinations'
 
@@ -41,11 +53,20 @@ export { getClassNameDecls } from './getClassNameDecls'
 
 export { getClassNameMeta } from './getClassNameMeta'
 
-export { getLanguageBoundaries, type LanguageBoundaries } from './getLanguageBoundaries'
+export {
+  getLanguageBoundaries,
+  type LanguageBoundaries
+} from './getLanguageBoundaries'
 
 export { getVariantsFromClassName } from './getVariantsFromClassName'
 
-export { isHtmlContext, isHtmlDoc, isInsideTag, isSvelteDoc, isVueDoc } from './html'
+export {
+  isHtmlContext,
+  isHtmlDoc,
+  isInsideTag,
+  isSvelteDoc,
+  isVueDoc
+} from './html'
 
 export { isObject } from './isObject'
 
@@ -59,11 +80,20 @@ export { joinWithAnd } from './joinWithAnd'
 
 export { isJsContext, isJsDoc } from './js'
 
-export { cssLanguages, htmlLanguages, jsLanguages, languages, specialLanguages } from './languages'
+export {
+  cssLanguages,
+  htmlLanguages,
+  jsLanguages,
+  languages,
+  specialLanguages
+} from './languages'
 
 export { type Lazy, lazy } from './lazy'
 
-export { getClassAttributeLexer, getComputedClassAttributeLexer } from './lexers'
+export {
+  getClassAttributeLexer,
+  getComputedClassAttributeLexer
+} from './lexers'
 
 export { naturalExpand } from './naturalExpand'
 
@@ -77,7 +107,12 @@ export { removeRangesFromString } from './removeRangesFromString'
 
 export { resolveRange } from './resolveRange'
 
-export { stringifyScreen, type MinMaxScreen, type RawScreen, type Screen } from './screens'
+export {
+  stringifyScreen,
+  type MinMaxScreen,
+  type RawScreen,
+  type Screen
+} from './screens'
 
 export {
   type ClassNameMeta,

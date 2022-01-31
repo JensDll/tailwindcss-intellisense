@@ -81,12 +81,17 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
 }
 
 function getUserLanguages(folder?: WorkspaceFolder): Record<string, string> {
-  const langs = Workspace.getConfiguration('tailwindCSS', folder).includeLanguages
+  const langs = Workspace.getConfiguration(
+    'tailwindCSS',
+    folder
+  ).includeLanguages
   return isObject(langs) ? langs : {}
 }
 
 function getGlobalExcludePatterns(scope: ConfigurationScope): string[] {
-  return Object.entries(Workspace.getConfiguration('files', scope).get('exclude'))
+  return Object.entries(
+    Workspace.getConfiguration('files', scope).get('exclude')
+  )
     .filter(([, value]) => value === true)
     .map(([key]) => key)
 }
@@ -94,7 +99,9 @@ function getGlobalExcludePatterns(scope: ConfigurationScope): string[] {
 function getExcludePatterns(scope: ConfigurationScope): string[] {
   return [
     ...getGlobalExcludePatterns(scope),
-    ...(<string[]>Workspace.getConfiguration('tailwindCSS', scope).get('files.exclude'))
+    ...(<string[]>(
+      Workspace.getConfiguration('tailwindCSS', scope).get('files.exclude')
+    ))
   ]
 }
 
@@ -110,7 +117,10 @@ function isExcluded(file: string, folder: WorkspaceFolder): boolean {
   return false
 }
 
-function mergeExcludes(settings: WorkspaceConfiguration, scope: ConfigurationScope) {
+function mergeExcludes(
+  settings: WorkspaceConfiguration,
+  scope: ConfigurationScope
+) {
   return {
     ...settings,
     files: {
@@ -140,7 +150,12 @@ export async function activate(context: ExtensionContext) {
     })
   )
 
-  let watcher = Workspace.createFileSystemWatcher(`**/${CONFIG_FILE_GLOB}`, false, true, true)
+  let watcher = Workspace.createFileSystemWatcher(
+    `**/${CONFIG_FILE_GLOB}`,
+    false,
+    true,
+    true
+  )
 
   watcher.onDidCreate(uri => {
     let folder = Workspace.getWorkspaceFolder(uri)
@@ -167,7 +182,10 @@ export async function activate(context: ExtensionContext) {
           const userLanguages = getUserLanguages(folder)
           if (userLanguages) {
             const userLanguageIds = Object.keys(userLanguages)
-            const newLanguages = dedupe([...defaultLanguages, ...userLanguageIds])
+            const newLanguages = dedupe([
+              ...defaultLanguages,
+              ...userLanguageIds
+            ])
             if (!equal(newLanguages, languages.get(folder.uri.toString()))) {
               languages.set(folder.uri.toString(), newLanguages)
 
@@ -216,12 +234,19 @@ export async function activate(context: ExtensionContext) {
     if (!outputChannel) {
       outputChannel = Window.createOutputChannel(CLIENT_NAME)
       context.subscriptions.push(outputChannel)
-      commands.executeCommand('setContext', 'tailwindCSS.hasOutputChannel', true)
+      commands.executeCommand(
+        'setContext',
+        'tailwindCSS.hasOutputChannel',
+        true
+      )
     }
 
     let configuration = {
       editor: Workspace.getConfiguration('editor', folder),
-      tailwindCSS: mergeExcludes(Workspace.getConfiguration('tailwindCSS', folder), folder)
+      tailwindCSS: mergeExcludes(
+        Workspace.getConfiguration('tailwindCSS', folder),
+        folder
+      )
     }
 
     let inspectPort = configuration.tailwindCSS.get('inspectPort')
@@ -259,14 +284,18 @@ export async function activate(context: ExtensionContext) {
           let selections = Window.activeTextEditor.selections
           if (selections.length > 1 && result.additionalTextEdits?.length > 0) {
             let length =
-              selections[0].start.character - result.additionalTextEdits[0].range.start.character
+              selections[0].start.character -
+              result.additionalTextEdits[0].range.start.character
             let prefixLength =
               result.additionalTextEdits[0].range.end.character -
               result.additionalTextEdits[0].range.start.character
 
             let ranges = selections.map(selection => {
               return new Range(
-                new Position(selection.start.line, selection.start.character - length),
+                new Position(
+                  selection.start.line,
+                  selection.start.character - length
+                ),
                 new Position(
                   selection.start.line,
                   selection.start.character - length + prefixLength
@@ -293,12 +322,18 @@ export async function activate(context: ExtensionContext) {
           let colors = await next(document, token)
           let editableColors = colors.filter(color => {
             let text =
-              Workspace.textDocuments.find(doc => doc === document)?.getText(color.range) ?? ''
+              Workspace.textDocuments
+                .find(doc => doc === document)
+                ?.getText(color.range) ?? ''
             return new RegExp(
-              `-\\[(${colorNames.join('|')}|((?:#|rgba?\\(|hsla?\\())[^\\]]+)\\]$`
+              `-\\[(${colorNames.join(
+                '|'
+              )}|((?:#|rgba?\\(|hsla?\\())[^\\]]+)\\]$`
             ).test(text)
           })
-          let nonEditableColors = colors.filter(color => !editableColors.includes(color))
+          let nonEditableColors = colors.filter(
+            color => !editableColors.includes(color)
+          )
 
           if (!colorDecorationType) {
             colorDecorationType = Window.createTextEditorDecorationType({
@@ -330,9 +365,9 @@ export async function activate(context: ExtensionContext) {
                 range,
                 renderOptions: {
                   before: {
-                    backgroundColor: `rgba(${color.red * 255}, ${color.green * 255}, ${
-                      color.blue * 255
-                    }, ${color.alpha})`
+                    backgroundColor: `rgba(${color.red * 255}, ${
+                      color.green * 255
+                    }, ${color.blue * 255}, ${color.alpha})`
                   }
                 }
               }))
@@ -345,7 +380,9 @@ export async function activate(context: ExtensionContext) {
             return params.items.map(({ section, scopeUri }) => {
               let scope: ConfigurationScope = folder
               if (scopeUri) {
-                let doc = Workspace.textDocuments.find(doc => doc.uri.toString() === scopeUri)
+                let doc = Workspace.textDocuments.find(
+                  doc => doc.uri.toString() === scopeUri
+                )
                 if (doc) {
                   scope = {
                     languageId: doc.languageId
@@ -371,7 +408,12 @@ export async function activate(context: ExtensionContext) {
       }
     }
 
-    let client = new LanguageClient(CLIENT_ID, CLIENT_NAME, serverOptions, clientOptions)
+    let client = new LanguageClient(
+      CLIENT_ID,
+      CLIENT_NAME,
+      serverOptions,
+      clientOptions
+    )
 
     client.onReady().then(() => {
       client.onNotification('@/tailwindCSS/error', async ({ message }) => {
@@ -434,7 +476,9 @@ export async function activate(context: ExtensionContext) {
     bootWorkspaceClient(folder)
   }
 
-  context.subscriptions.push(Workspace.onDidOpenTextDocument(didOpenTextDocument))
+  context.subscriptions.push(
+    Workspace.onDidOpenTextDocument(didOpenTextDocument)
+  )
   Workspace.textDocuments.forEach(didOpenTextDocument)
   context.subscriptions.push(
     Workspace.onDidChangeWorkspaceFolders(event => {

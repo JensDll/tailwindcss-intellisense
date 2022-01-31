@@ -31,7 +31,15 @@ export const htmlLanguages = [
   'twig'
 ]
 
-export const cssLanguages = ['css', 'less', 'postcss', 'sass', 'scss', 'stylus', 'sugarss']
+export const cssLanguages = [
+  'css',
+  'less',
+  'postcss',
+  'sass',
+  'scss',
+  'stylus',
+  'sugarss'
+]
 
 export const jsLanguages = [
   'javascript',
@@ -44,4 +52,9 @@ export const jsLanguages = [
 
 export const specialLanguages = ['vue', 'svelte']
 
-export const languages = [...cssLanguages, ...htmlLanguages, ...jsLanguages, ...specialLanguages]
+export const languages = [
+  ...cssLanguages,
+  ...htmlLanguages,
+  ...jsLanguages,
+  ...specialLanguages
+]

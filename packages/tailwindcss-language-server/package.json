@@ -4,8 +4,9 @@
   "license": "MIT",
   "version": "0.0.7",
   "scripts": {
-    "build": "ncc build src/index.ts --minify",
+    "build": "ncc build src/index.ts --minify && pnpm run hashbang",
     "dev": "ncc build src/index.ts --source-map --no-source-map-register --watch",
+    "hashbang": "node --experimental-loader esbuild-node-loader \"./scripts/hashbang.ts\"",
     "prepublishOnly": "pnpm run build"
   },
   "bin": {

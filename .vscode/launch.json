@@ -6,7 +6,9 @@
       "request": "launch",
       "name": "Launch Client",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages/vscode-tailwindcss"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages/vscode-tailwindcss"
+      ],
       "outFiles": ["${workspaceRoot}/packages/vscode-tailwindcss/dist/*.js"]
     },
     {
@@ -15,7 +17,9 @@
       "name": "Attach to Server 6011",
       "port": 6011,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/packages/tailwindcss-language-server/dist/*.js"]
+      "outFiles": [
+        "${workspaceRoot}/packages/tailwindcss-language-server/dist/*.js"
+      ]
     },
     {
       "type": "node",
@@ -23,13 +27,19 @@
       "name": "Attach to Server 6012",
       "port": 6012,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/packages/tailwindcss-language-server/dist/*.js"]
+      "outFiles": [
+        "${workspaceRoot}/packages/tailwindcss-language-server/dist/*.js"
+      ]
     }
   ],
   "compounds": [
     {
       "name": "Client + Server",
-      "configurations": ["Launch Client", "Attach to Server 6011", "Attach to Server 6012"]
+      "configurations": [
+        "Launch Client",
+        "Attach to Server 6011",
+        "Attach to Server 6012"
+      ]
     }
   ]
 }

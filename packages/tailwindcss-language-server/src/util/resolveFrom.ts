@@ -1,6 +1,11 @@
 import fs from 'fs'
 
-import { CachedInputFileSystem, ResolverFactory, Resolver, ResolveOptions } from 'enhanced-resolve'
+import {
+  CachedInputFileSystem,
+  ResolverFactory,
+  Resolver,
+  ResolveOptions
+} from 'enhanced-resolve'
 
 function createResolver(options: Partial<ResolveOptions> = {}): Resolver {
   return ResolverFactory.createResolver({

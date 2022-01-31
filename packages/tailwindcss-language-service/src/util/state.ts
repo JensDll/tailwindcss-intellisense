@@ -1,4 +1,9 @@
-import type { TextDocuments, Connection, Range, SymbolInformation } from 'vscode-languageserver'
+import type {
+  TextDocuments,
+  Connection,
+  Range,
+  SymbolInformation
+} from 'vscode-languageserver'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import { Postcss } from 'postcss'
 import * as culori from 'culori'

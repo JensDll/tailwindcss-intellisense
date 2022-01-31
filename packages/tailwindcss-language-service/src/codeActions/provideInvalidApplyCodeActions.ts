@@ -1,4 +1,9 @@
-import type { CodeAction, CodeActionParams, TextEdit, Range } from 'vscode-languageserver'
+import type {
+  CodeAction,
+  CodeActionParams,
+  TextEdit,
+  Range
+} from 'vscode-languageserver'
 import { Root, Source } from 'postcss'
 import selectorParser from 'postcss-selector-parser'
 import dlv from 'dlv'
@@ -32,7 +37,8 @@ export async function provideInvalidApplyCodeActions(
   const { postcss } = state.modules
   let changes: TextEdit[] = []
 
-  let totalClassNamesInClassList = diagnostic.className.classList.classList.split(/\s+/).length
+  let totalClassNamesInClassList =
+    diagnostic.className.classList.classList.split(/\s+/).length
 
   let className = diagnostic.className.className
   let classNameParts = getClassNameParts(state, className)
@@ -45,7 +51,9 @@ export async function provideInvalidApplyCodeActions(
   if (!isCssDoc(state, document)) {
     let languageBoundaries = getLanguageBoundaries(state, document)
     if (!languageBoundaries) return []
-    cssRange = languageBoundaries.css.find(range => isWithinRange(diagnostic.range.start, range))
+    cssRange = languageBoundaries.css.find(range =>
+      isWithinRange(diagnostic.range.start, range)
+    )
     if (!cssRange) return []
     cssText = document.getText(cssRange)
   }
@@ -66,7 +74,8 @@ export async function provideInvalidApplyCodeActions(
                   atRuleRange = absoluteRange(atRuleRange, cssRange)
                 }
 
-                if (!isWithinRange(diagnostic.range.start, atRuleRange)) return undefined // true
+                if (!isWithinRange(diagnostic.range.start, atRuleRange))
+                  return undefined // true
 
                 let ast = classNameToAst(
                   state,
@@ -112,8 +121,12 @@ export async function provideInvalidApplyCodeActions(
                       .replace(/(@apply [^;\n]+)$/gm, '$1;')
                       .replace(/([^\s^]){$/gm, '$1 {')
                       .replace(/^\s+/gm, (m: string) => {
-                        if (typeof outputIndent === 'undefined') outputIndent = m
-                        return m.replace(new RegExp(outputIndent, 'g'), documentIndent.indent)
+                        if (typeof outputIndent === 'undefined')
+                          outputIndent = m
+                        return m.replace(
+                          new RegExp(outputIndent, 'g'),
+                          documentIndent.indent
+                        )
                       })
                       .replace(/^(\s+)(.*?[^{}]\n)([^\s}])/gm, '$1$2$1$3')
                 })
@@ -170,7 +183,10 @@ function classNameToAst(
 ) {
   const baseClassName = classNameParts[classNameParts.length - 1]
   const validatedBaseClassName = validateApply(state, [baseClassName])
-  if (validatedBaseClassName === null || validatedBaseClassName.isApplyable === false) {
+  if (
+    validatedBaseClassName === null ||
+    validatedBaseClassName.isApplyable === false
+  ) {
     return null
   }
   const meta = getClassNameMeta(state, classNameParts)
@@ -214,7 +230,10 @@ function classNameToAst(
   return cssObjToAst(obj, state.modules.postcss)
 }
 
-function appendPseudosToSelector(selector: string, pseudos: string[]): string | null {
+function appendPseudosToSelector(
+  selector: string,
+  pseudos: string[]
+): string | null {
   if (pseudos.length === 0) return selector
 
   let canTransform = true

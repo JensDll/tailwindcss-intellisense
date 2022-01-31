@@ -119,7 +119,10 @@ export function completionsFromClassList(
     }
 
     let allVariants = Object.keys(state.variants)
-    let { variants: existingVariants, offset } = getVariantsFromClassName(state, partialClassName)
+    let { variants: existingVariants, offset } = getVariantsFromClassName(
+      state,
+      partialClassName
+    )
 
     replacementRange.start.character += offset
 
@@ -164,11 +167,15 @@ export function completionsFromClassList(
                   ? [
                       {
                         newText:
-                          resultingVariants.slice(0, resultingVariants.length - 1).join(sep) + sep,
+                          resultingVariants
+                            .slice(0, resultingVariants.length - 1)
+                            .join(sep) + sep,
                         range: {
                           start: {
                             ...classListRange.start,
-                            character: classListRange.end.character - partialClassName.length
+                            character:
+                              classListRange.end.character -
+                              partialClassName.length
                           },
                           end: {
                             ...replacementRange.start,
@@ -200,7 +207,10 @@ export function completionsFromClassList(
               kind,
               documentation,
               sortText: naturalExpand(index),
-              data: [...existingVariants, important ? `!${className}` : className],
+              data: [
+                ...existingVariants,
+                important ? `!${className}` : className
+              ],
               textEdit: {
                 newText: className,
                 range: replacementRange
@@ -240,7 +250,10 @@ export function completionsFromClassList(
                 kind,
                 documentation,
                 sortText: naturalExpand(index),
-                data: [...existingVariants, important ? `!${className}` : className],
+                data: [
+                  ...existingVariants,
+                  important ? `!${className}` : className
+                ],
                 textEdit: {
                   newText: className,
                   range: replacementRange
@@ -263,14 +276,20 @@ export function completionsFromClassList(
   for (let i = parts.length - 1; i > 0; i--) {
     let keys = parts.slice(0, i).filter(Boolean)
     subset = dlv(state.classNames.classNames, keys)
-    if (typeof subset !== 'undefined' && typeof dlv(subset, ['__info', '__rule']) === 'undefined') {
+    if (
+      typeof subset !== 'undefined' &&
+      typeof dlv(subset, ['__info', '__rule']) === 'undefined'
+    ) {
       isSubset = true
       subsetKey = keys
       replacementRange = {
         ...replacementRange,
         start: {
           ...replacementRange.start,
-          character: replacementRange.start.character + keys.join(sep).length + sep.length
+          character:
+            replacementRange.start.character +
+            keys.join(sep).length +
+            sep.length
         }
       }
       break
@@ -302,7 +321,11 @@ export function completionsFromClassList(
       .concat(
         Object.keys(isSubset ? subset : state.classNames.classNames)
           .filter(className =>
-            dlv(state.classNames.classNames, [...subsetKey, className, '__info'])
+            dlv(state.classNames.classNames, [
+              ...subsetKey,
+              className,
+              '__info'
+            ])
           )
           .map((className, index) => {
             let kind: CompletionItemKind = 21
@@ -354,7 +377,8 @@ async function provideClassAttributeCompletions(
 
   let matches = matchClassAttributes(
     str,
-    (await state.editor.getConfiguration(document.uri)).tailwindCSS.classAttributes
+    (await state.editor.getConfiguration(document.uri)).tailwindCSS
+      .classAttributes
   )
 
   if (matches.length === 0) {
@@ -422,7 +446,9 @@ async function provideCustomClassNameCompletions(
 
   for (let i = 0; i < regexes.length; i++) {
     try {
-      let [containerRegex, classRegex] = Array.isArray(regexes[i]) ? regexes[i] : [regexes[i]]
+      let [containerRegex, classRegex] = Array.isArray(regexes[i])
+        ? regexes[i]
+        : [regexes[i]]
 
       containerRegex = createMultiRegexp(containerRegex)
       let containerMatch
@@ -439,7 +465,9 @@ async function provideCustomClassNameCompletions(
             classRegex = createMultiRegexp(classRegex)
             let classMatch
 
-            while ((classMatch = classRegex.exec(containerMatch.match)) !== null) {
+            while (
+              (classMatch = classRegex.exec(containerMatch.match)) !== null
+            ) {
               const classMatchStart = matchStart + classMatch.start
               const classMatchEnd = matchStart + classMatch.end
               if (cursor >= classMatchStart && cursor <= classMatchEnd) {
@@ -500,7 +528,8 @@ function provideAtApplyCompletions(
     item => {
       if (item.kind === 9) {
         return (
-          semver.gte(state.version, '2.0.0-alpha.1') || flagEnabled(state, 'applyComplexClasses')
+          semver.gte(state.version, '2.0.0-alpha.1') ||
+          flagEnabled(state, 'applyComplexClasses')
         )
       }
       let validated = validateApply(state, item.data)
@@ -519,7 +548,10 @@ async function provideClassNameCompletions(
     return provideAtApplyCompletions(state, document, position)
   }
 
-  if (isHtmlContext(state, document, position) || isJsContext(state, document, position)) {
+  if (
+    isHtmlContext(state, document, position) ||
+    isJsContext(state, document, position)
+  ) {
     return provideClassAttributeCompletions(state, document, position, context)
   }
 
@@ -549,7 +581,10 @@ function provideCssHelperCompletions(
     return null
   }
 
-  let base = match.groups.helper === 'config' ? state.config : dlv(state.config, 'theme', {})
+  let base =
+    match.groups.helper === 'config'
+      ? state.config
+      : dlv(state.config, 'theme', {})
   let parts = match.groups.keys.split(/([\[\].]+)/)
   let keys = parts.filter((_, i) => i % 2 === 0)
   let separators = parts.filter((_, i) => i % 2 !== 0)
@@ -564,7 +599,9 @@ function provideCssHelperCompletions(
 
   let obj: any
   let offset: number = 0
-  let separator: string = separators.length ? separators[separators.length - 1] : null
+  let separator: string = separators.length
+    ? separators[separators.length - 1]
+    : null
 
   if (keys.length === 1) {
     obj = base
@@ -586,7 +623,8 @@ function provideCssHelperCompletions(
     isIncomplete: false,
     items: Object.keys(obj).map((item, index) => {
       let color = getColorFromValue(obj[item])
-      const replaceDot: boolean = item.indexOf('.') !== -1 && separator && separator.endsWith('.')
+      const replaceDot: boolean =
+        item.indexOf('.') !== -1 && separator && separator.endsWith('.')
       const insertClosingBrace: boolean =
         text.charAt(text.length - 1) !== ']' &&
         (replaceDot || (separator && separator.endsWith('[')))
@@ -598,18 +636,24 @@ function provideCssHelperCompletions(
         sortText: naturalExpand(index),
         kind: color ? 16 : isObject(obj[item]) ? 9 : 10,
         // VS Code bug causes some values to not display in some cases
-        detail: detail === '0' || detail === 'transparent' ? `${detail} ` : detail,
+        detail:
+          detail === '0' || detail === 'transparent' ? `${detail} ` : detail,
         documentation:
           color && typeof color !== 'string' && (color.alpha ?? 1) !== 0
             ? culori.formatRgb(color)
             : null,
         textEdit: {
-          newText: `${replaceDot ? '[' : ''}${item}${insertClosingBrace ? ']' : ''}`,
+          newText: `${replaceDot ? '[' : ''}${item}${
+            insertClosingBrace ? ']' : ''
+          }`,
           range: {
             start: {
               line: position.line,
               character:
-                position.character - keys[keys.length - 1].length - (replaceDot ? 1 : 0) - offset
+                position.character -
+                keys[keys.length - 1].length -
+                (replaceDot ? 1 : 0) -
+                offset
             },
             end: position
           }
@@ -837,7 +881,11 @@ function provideScreenDirectiveCompletions(
 
   if (match === null) return null
 
-  const screens = dlv(state.config, ['screens'], dlv(state.config, ['theme', 'screens'], {}))
+  const screens = dlv(
+    state.config,
+    ['screens'],
+    dlv(state.config, ['theme', 'screens'], {})
+  )
 
   if (!isObject(screens)) return null
 
@@ -886,7 +934,9 @@ function provideCssDirectiveCompletions(
       documentation: {
         kind: 'markdown' as typeof MarkupKind.Markdown,
         value: `Use the \`@tailwind\` directive to insert Tailwind's \`base\`, \`components\`, \`utilities\` and \`${
-          state.jit && semver.gte(state.version, '2.1.99') ? 'variants' : 'screens'
+          state.jit && semver.gte(state.version, '2.1.99')
+            ? 'variants'
+            : 'screens'
         }\` styles into your CSS.\n\n[Tailwind CSS Documentation](${docsUrl(
           state.version,
           'functions-and-directives/#tailwind'
@@ -990,18 +1040,28 @@ async function provideEmmetCompletions(
     return null
   }
 
-  const extractAbbreviationResults = emmetHelper.extractAbbreviation(document, position, {
-    lookAhead: true
-  })
+  const extractAbbreviationResults = emmetHelper.extractAbbreviation(
+    document,
+    position,
+    {
+      lookAhead: true
+    }
+  )
   if (
     !extractAbbreviationResults ||
-    !emmetHelper.isAbbreviationValid(syntax, extractAbbreviationResults.abbreviation)
+    !emmetHelper.isAbbreviationValid(
+      syntax,
+      extractAbbreviationResults.abbreviation
+    )
   ) {
     return null
   }
 
   if (
-    !isValidLocationForEmmetAbbreviation(document, extractAbbreviationResults.abbreviationRange)
+    !isValidLocationForEmmetAbbreviation(
+      document,
+      extractAbbreviationResults.abbreviationRange
+    )
   ) {
     return null
   }
@@ -1017,7 +1077,8 @@ async function provideEmmetCompletions(
       symbols.find(
         symbol =>
           abbreviation === symbol.name ||
-          (abbreviation.startsWith(symbol.name + '.') && !/>|\*|\+/.test(abbreviation))
+          (abbreviation.startsWith(symbol.name + '.') &&
+            !/>|\*|\+/.test(abbreviation))
       )
     ) {
       return null
@@ -1074,12 +1135,18 @@ export async function resolveCompletionItem(
   state: State,
   item: CompletionItem
 ): Promise<CompletionItem> {
-  if (['helper', 'directive', 'variant', 'layer', '@tailwind'].includes(item.data)) {
+  if (
+    ['helper', 'directive', 'variant', 'layer', '@tailwind'].includes(item.data)
+  ) {
     return item
   }
 
   if (item.data === 'screen') {
-    let screens = dlv(state.config, ['theme', 'screens'], dlv(state.config, ['screens'], {}))
+    let screens = dlv(
+      state.config,
+      ['theme', 'screens'],
+      dlv(state.config, ['screens'], {})
+    )
     if (!isObject(screens)) screens = {}
     item.detail = stringifyScreen(screens[item.label] as Screen)
     return item
@@ -1092,7 +1159,9 @@ export async function resolveCompletionItem(
   if (state.jit) {
     if (item.kind === 9) return item
     if (item.detail && item.documentation) return item
-    let { root, rules } = jit.generateRules(state, [item.data.join(state.separator)])
+    let { root, rules } = jit.generateRules(state, [
+      item.data.join(state.separator)
+    ])
     if (rules.length === 0) return item
     if (!item.detail) {
       if (rules.length === 1) {
@@ -1104,7 +1173,9 @@ export async function resolveCompletionItem(
     if (!item.documentation) {
       item.documentation = {
         kind: 'markdown' as typeof MarkupKind.Markdown,
-        value: ['```css', await jit.stringifyRoot(state, root), '```'].join('\n')
+        value: ['```css', await jit.stringifyRoot(state, root), '```'].join(
+          '\n'
+        )
       }
     }
     return item
@@ -1112,14 +1183,19 @@ export async function resolveCompletionItem(
 
   const className = dlv(state.classNames.classNames, [...item.data, '__info'])
   if (item.kind === 9) {
-    item.detail = state.classNames.context[item.data[item.data.length - 1]].join(', ')
+    item.detail =
+      state.classNames.context[item.data[item.data.length - 1]].join(', ')
   } else {
     item.detail = await getCssDetail(state, className)
     if (!item.documentation) {
       const settings = await state.editor.getConfiguration()
       const css = stringifyCss(item.data.join(':'), className, {
         tabSize: dlv(settings, 'editor.tabSize', 2),
-        showPixelEquivalents: dlv(settings, 'tailwindCSS.showPixelEquivalents', true),
+        showPixelEquivalents: dlv(
+          settings,
+          'tailwindCSS.showPixelEquivalents',
+          true
+        ),
         rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16)
       })
       if (css) {
@@ -1167,7 +1243,9 @@ function stringifyDecls(
     .map(prop =>
       ensureArray(obj[prop])
         .map(value => {
-          const px = showPixelEquivalents ? remToPx(value, rootFontSize) : undefined
+          const px = showPixelEquivalents
+            ? remToPx(value, rootFontSize)
+            : undefined
           return `${prop}: ${value}${px ? `/* ${px} */` : ''};`
         })
         .join(' ')
@@ -1182,7 +1260,11 @@ async function getCssDetail(state: State, className: any): Promise<string> {
   if (className.__rule === true) {
     const settings = await state.editor.getConfiguration()
     return stringifyDecls(removeMeta(className), {
-      showPixelEquivalents: dlv(settings, 'tailwindCSS.showPixelEquivalents', true),
+      showPixelEquivalents: dlv(
+        settings,
+        'tailwindCSS.showPixelEquivalents',
+        true
+      ),
       rootFontSize: dlv(settings, 'tailwindCSS.rootFontSize', 16)
     })
   }

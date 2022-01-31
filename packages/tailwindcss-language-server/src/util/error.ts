@@ -12,7 +12,11 @@ function toString(err: any, includeStack: boolean = true): string {
 }
 
 // https://github.com/vscode-langservers/vscode-json-languageserver/blob/master/src/utils/runner.ts
-export function formatError(message: string, err: any, includeStack: boolean = true): string {
+export function formatError(
+  message: string,
+  err: any,
+  includeStack: boolean = true
+): string {
   if (err) {
     return `${message}: ${toString(err, includeStack)}`
   }

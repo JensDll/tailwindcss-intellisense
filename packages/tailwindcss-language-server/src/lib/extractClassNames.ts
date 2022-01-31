@@ -76,7 +76,9 @@ export async function extractClassNames(root: Root | Document) {
     rule.walkDecls(decl => {
       if (decls[decl.prop]) {
         decls[decl.prop] = [
-          ...(Array.isArray(decls[decl.prop]) ? decls[decl.prop] : [decls[decl.prop]]),
+          ...(Array.isArray(decls[decl.prop])
+            ? decls[decl.prop]
+            : [decls[decl.prop]]),
           decl.value
         ]
       } else {
@@ -114,9 +116,21 @@ export async function extractClassNames(root: Root | Document) {
         dsetEach(tree, [...baseKeys, '__info', ...index], decls)
       }
       dset(tree, [...baseKeys, '__info', ...index, '__source'], layer)
-      dset(tree, [...baseKeys, '__info', ...index, '__pseudo'], classNames[i].__pseudo)
-      dset(tree, [...baseKeys, '__info', ...index, '__scope'], classNames[i].scope)
-      dset(tree, [...baseKeys, '__info', ...index, '__context'], context.concat([]).reverse())
+      dset(
+        tree,
+        [...baseKeys, '__info', ...index, '__pseudo'],
+        classNames[i].__pseudo
+      )
+      dset(
+        tree,
+        [...baseKeys, '__info', ...index, '__scope'],
+        classNames[i].scope
+      )
+      dset(
+        tree,
+        [...baseKeys, '__info', ...index, '__context'],
+        context.concat([]).reverse()
+      )
 
       // common context
       context.push(...classNames[i].__pseudo.map(x => `&${x}`))
@@ -125,7 +139,10 @@ export async function extractClassNames(root: Root | Document) {
         if (typeof commonContext[contextKeys[i]] === 'undefined') {
           commonContext[contextKeys[i]] = context
         } else {
-          commonContext[contextKeys[i]] = intersection(commonContext[contextKeys[i]], context)
+          commonContext[contextKeys[i]] = intersection(
+            commonContext[contextKeys[i]],
+            context
+          )
         }
       }
     }

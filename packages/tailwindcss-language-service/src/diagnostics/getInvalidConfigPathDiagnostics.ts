@@ -29,7 +29,9 @@ export function validateConfigPath(
   state: State,
   path: string | string[],
   base: string[] = []
-): { isValid: true; value: any } | { isValid: false; reason: string; suggestions: string[] } {
+):
+  | { isValid: true; value: any }
+  | { isValid: false; reason: string; suggestions: string[] } {
   let keys = Array.isArray(path) ? path : stringToPath(path)
   let value = dlv(state.config, [...base, ...keys])
   let suggestions: string[] = []
@@ -52,7 +54,9 @@ export function validateConfigPath(
       })
       .slice(1) // skip original path
 
-    return possibilities.find(possibility => validateConfigPath(state, possibility, base).isValid)
+    return possibilities.find(
+      possibility => validateConfigPath(state, possibility, base).isValid
+    )
   }
 
   if (typeof value === 'undefined') {
@@ -68,7 +72,9 @@ export function validateConfigPath(
         )
       )
       if (closestValidKey) {
-        suggestions.push(pathToString([...keys.slice(0, keys.length - 1), closestValidKey]))
+        suggestions.push(
+          pathToString([...keys.slice(0, keys.length - 1), closestValidKey])
+        )
         reason += ` Did you mean '${suggestions[0]}'?`
       }
     } else {
@@ -99,14 +105,18 @@ export function validateConfigPath(
       typeof value === 'function'
     )
   ) {
-    let reason = `'${pathToString(path)}' was found but does not resolve to a valid theme value.`
+    let reason = `'${pathToString(
+      path
+    )}' was found but does not resolve to a valid theme value.`
 
     if (isObject(value)) {
       let validKeys = Object.keys(value).filter(
         key => validateConfigPath(state, [...keys, key], base).isValid
       )
       if (validKeys.length) {
-        suggestions.push(...validKeys.map(validKey => pathToString([...keys, validKey])))
+        suggestions.push(
+          ...validKeys.map(validKey => pathToString([...keys, validKey]))
+        )
         reason += ` Did you mean something like '${suggestions[0]}'?`
       }
     }

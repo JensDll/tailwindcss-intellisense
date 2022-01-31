@@ -1,4 +1,8 @@
-import { TextDocument, Range, Position } from 'vscode-languageserver-textdocument'
+import {
+  TextDocument,
+  Range,
+  Position
+} from 'vscode-languageserver-textdocument'
 
 export function isValidLocationForEmmetAbbreviation(
   document: TextDocument,

@@ -11,7 +11,9 @@ export async function provideCssConflictCodeActions(
   return [
     {
       title: `Delete ${joinWithAnd(
-        diagnostic.otherClassNames.map(otherClassName => `'${otherClassName.className}'`)
+        diagnostic.otherClassNames.map(
+          otherClassName => `'${otherClassName.className}'`
+        )
       )}`,
       kind: 'quickfix', // CodeActionKind.QuickFix,
       diagnostics: [diagnostic],
@@ -22,7 +24,9 @@ export async function provideCssConflictCodeActions(
               range: diagnostic.className.classList.range,
               newText: removeRangesFromString(
                 diagnostic.className.classList.classList,
-                diagnostic.otherClassNames.map(otherClassName => otherClassName.relativeRange)
+                diagnostic.otherClassNames.map(
+                  otherClassName => otherClassName.relativeRange
+                )
               )
             }
           ]

@@ -9,7 +9,10 @@ export function bigSign(bigIntValue) {
   return (bigIntValue > 0n) - (bigIntValue < 0n)
 }
 
-export function generateRules(state: State, classNames: string[]): { root: Root; rules: Rule[] } {
+export function generateRules(
+  state: State,
+  classNames: string[]
+): { root: Root; rules: Rule[] } {
   let rules: [bigint, Rule][] = state.modules.jit.generateRules
     .module(new Set(classNames), state.jitContext)
     .sort(([a], [z]) => bigSign(a - z))
@@ -30,10 +33,18 @@ export function generateRules(state: State, classNames: string[]): { root: Root;
   }
 }
 
-export async function stringifyRoot(state: State, root: Root, uri?: string): Promise<string> {
+export async function stringifyRoot(
+  state: State,
+  root: Root,
+  uri?: string
+): Promise<string> {
   let settings = await state.editor.getConfiguration(uri)
   let tabSize = dlv(settings, 'editor.tabSize', 2)
-  let showPixelEquivalents = dlv(settings, 'tailwindCSS.showPixelEquivalents', true)
+  let showPixelEquivalents = dlv(
+    settings,
+    'tailwindCSS.showPixelEquivalents',
+    true
+  )
   let rootFontSize = dlv(settings, 'tailwindCSS.rootFontSize', 16)
 
   let clone = root.clone()
@@ -53,20 +64,39 @@ export async function stringifyRoot(state: State, root: Root, uri?: string): Pro
 
   return clone
     .toString()
-    .replace(/([^;{}\s])(\n\s*})/g, (_match, before, after) => `${before};${after}`)
-    .replace(/^(?:    )+/gm, (indent: string) => ' '.repeat((indent.length / 4) * tabSize))
+    .replace(
+      /([^;{}\s])(\n\s*})/g,
+      (_match, before, after) => `${before};${after}`
+    )
+    .replace(/^(?:    )+/gm, (indent: string) =>
+      ' '.repeat((indent.length / 4) * tabSize)
+    )
 }
 
-export function stringifyRules(state: State, rules: Rule[], tabSize: number = 2): string {
+export function stringifyRules(
+  state: State,
+  rules: Rule[],
+  tabSize: number = 2
+): string {
   return rules
     .map(rule => rule.toString().replace(/([^}{;])$/gm, '$1;'))
     .join('\n\n')
-    .replace(/^(?:    )+/gm, (indent: string) => ' '.repeat((indent.length / 4) * tabSize))
+    .replace(/^(?:    )+/gm, (indent: string) =>
+      ' '.repeat((indent.length / 4) * tabSize)
+    )
 }
 
-export async function stringifyDecls(state: State, rule: Rule, uri?: string): Promise<string> {
+export async function stringifyDecls(
+  state: State,
+  rule: Rule,
+  uri?: string
+): Promise<string> {
   let settings = await state.editor.getConfiguration(uri)
-  let showPixelEquivalents = dlv(settings, 'tailwindCSS.showPixelEquivalents', true)
+  let showPixelEquivalents = dlv(
+    settings,
+    'tailwindCSS.showPixelEquivalents',
+    true
+  )
   let rootFontSize = dlv(settings, 'tailwindCSS.rootFontSize', 16)
 
   let result = []
@@ -77,7 +107,12 @@ export async function stringifyDecls(state: State, rule: Rule, uri?: string): Pr
   return result.join(' ')
 }
 
-function replaceClassName(state: State, selector: string, find: string, replace: string): string {
+function replaceClassName(
+  state: State,
+  selector: string,
+  find: string,
+  replace: string
+): string {
   const transform = selectors => {
     selectors.walkClasses(className => {
       if (className.value === find) {
@@ -86,11 +121,19 @@ function replaceClassName(state: State, selector: string, find: string, replace:
     })
   }
 
-  return state.modules.postcssSelectorParser.module(transform).processSync(selector)
+  return state.modules.postcssSelectorParser
+    .module(transform)
+    .processSync(selector)
 }
 
-export function getRuleContext(state: State, rule: Rule, className: string): string[] {
-  let context: string[] = [replaceClassName(state, rule.selector, className, '__placeholder__')]
+export function getRuleContext(
+  state: State,
+  rule: Rule,
+  className: string
+): string[] {
+  let context: string[] = [
+    replaceClassName(state, rule.selector, className, '__placeholder__')
+  ]
 
   let p: Container | Document = rule
   while (p.parent && p.parent.type !== 'root') {

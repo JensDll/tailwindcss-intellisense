@@ -48,7 +48,8 @@ export function getInvalidVariantDiagnostics(
 
     matches.forEach(match => {
       let variants = match.groups.variants.split(/(\s*,\s*)/)
-      let listStartIndex = match.index + match[0].length - match.groups.variants.length
+      let listStartIndex =
+        match.index + match[0].length - match.groups.variants.length
 
       for (let i = 0; i < variants.length; i += 2) {
         let variant = variants[i].trim()
@@ -65,7 +66,8 @@ export function getInvalidVariantDiagnostics(
           message += ` Did you mean '${suggestion}'?`
         }
 
-        let variantStartIndex = listStartIndex + variants.slice(0, i).join('').length
+        let variantStartIndex =
+          listStartIndex + variants.slice(0, i).join('').length
 
         diagnostics.push({
           code: DiagnosticKind.InvalidVariant,

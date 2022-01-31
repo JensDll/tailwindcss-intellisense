@@ -11,6 +11,8 @@ export function docsUrl(version: string, paths: string | string[]): string {
     major = 2
     url = 'https://tailwindcss.com/docs/'
   }
-  const path = Array.isArray(paths) ? paths[major] || paths[paths.length - 1] : paths
+  const path = Array.isArray(paths)
+    ? paths[major] || paths[paths.length - 1]
+    : paths
   return `${url}${path}`
 }
