@@ -13,8 +13,8 @@ function getDeps(name: PackageName): string[] {
     fs.readFileSync(path.resolve('packages', name, 'package.json'), 'utf-8')
   )['devDependencies']
 
-  return Object.entries(packageJson)
-    .map<string>(([name]) => name)
+  return Object.keys(packageJson)
+    .map(name => name)
     .filter(name => !name.startsWith('@tailwindcss/'))
 }
 
